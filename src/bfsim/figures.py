@@ -46,8 +46,8 @@ def pgr_plr_bars(table, path=None):
     ax.set_xticklabels([f"{k}. {s}" for k, s in zip(table.index, table["Scenario"])],
                        rotation=20, ha="right", fontsize=8.5)
     ax.set_ylabel("proportion realised, per sale day")
-    ax.set_title("Realisation rates by domain. The ratio is printed above each pair; "
-                 "red marks a scenario with no injected disposition")
+    ax.set_title("Realisation rates by domain, with the ratio above each pair\n"
+                 "Red marks a scenario in which no disposition was injected")
     ax.legend(frameon=False, fontsize=9)
     return _save(fig, path)
 
