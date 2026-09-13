@@ -1,0 +1,96 @@
+### scenarios
+                  Scenario  delta_inj  kappa_inj   Confound      PGR   se_PGR      PLR   se_PLR  PGR-PLR  se_diff    t_diff  PGR/PLR  se_ratio  Turnover  beta_gross  se_gross  beta_net   se_net   t_gross     t_net
+#                                                                                                                                                                                                                    
+1                     Null        0.0        0.0       none  0.05099  0.00053  0.05014  0.00057  0.00085  0.00042   2.00411  1.01694   0.00855   1.00461     0.00123   0.01557  -0.00474  0.01549   0.07912  -0.30576
+2    Disposition only, low        0.3        0.0       none  0.06245  0.00071  0.03582  0.00051  0.02663  0.00074  36.21466  1.74344   0.02663   1.07208     0.06266   0.01498   0.05648  0.01491   4.18385   3.78707
+3   Disposition only, high        0.8        0.0       none  0.08660  0.00101  0.01173  0.00032  0.07487  0.00106  70.52907  7.38544   0.21967   1.06837     0.15070   0.01340   0.14368  0.01331  11.24510  10.79433
+4       Turnover only, low        0.0        0.3       none  0.05370  0.00056  0.05360  0.00057  0.00010  0.00028   0.36543  1.00191   0.00524   2.22766    -0.00183   0.00343  -0.00776  0.00338  -0.53299  -2.29681
+5      Turnover only, high        0.0        0.8       none  0.05700  0.00054  0.05728  0.00056 -0.00029  0.00022  -1.30860  0.99500   0.00381   4.24579    -0.00056   0.00354  -0.00647  0.00348  -0.15817  -1.85902
+6              Both active        0.8        0.8       none  0.11581  0.00135  0.01735  0.00035  0.09846  0.00149  66.17841  6.67371   0.17408   3.36125     0.02820   0.00355   0.02180  0.00348   7.94201   6.27091
+7     Rebalancing confound        0.0        0.0  rebalance  0.07355  0.00059  0.04016  0.00039  0.03338  0.00042  79.71308  1.83112   0.01260   1.19450     0.01354   0.01522   0.00788  0.01515   0.88948   0.51968
+8  Mean-reversion confound        0.0        0.0   reversal  0.05754  0.00057  0.04067  0.00047  0.01686  0.00042  40.04326  1.41463   0.01221   1.04668     0.06403   0.01466   0.05796  0.01459   4.36751   3.97311
+
+### independence
+                  Scenario  corr_delta_kappa  se_corr_null  corr_delta_turnover  corr_kappa_turnover  corr_delta_retgross  corr_turnover_retgross
+#                                                                                                                                                
+1                     Null               NaN       0.03167                  NaN                  NaN                  NaN                -0.01215
+2    Disposition only, low               NaN       0.03167              0.13623                  NaN             -0.01608                 0.15499
+3   Disposition only, high               NaN       0.03167             -0.11245                  NaN             -0.02618                 0.39749
+4       Turnover only, low               NaN       0.03167                  NaN              0.93889                  NaN                -0.02436
+5      Turnover only, high               NaN       0.03167                  NaN              0.85916                  NaN                -0.02036
+6              Both active          -0.04048       0.03167             -0.61651              0.58819              0.01337                 0.28036
+7     Rebalancing confound               NaN       0.03167                  NaN                  NaN                  NaN                 0.02215
+8  Mean-reversion confound               NaN       0.03167                  NaN                  NaN                  NaN                 0.14230
+
+### conventions
+                  Scenario  per-lot, position  per-lot, share-weighted  average cost, position  silent days included  at basis (obs)  se (account)  se (position-day)  understatement
+#                                                                                                                                                                                    
+1                     Null            0.00085                  0.00085                 0.00046               0.00005               0       0.00042            0.00044         0.96152
+2    Disposition only, low            0.02663                  0.02663                 0.02425               0.00239               0       0.00074            0.00040         1.84864
+3   Disposition only, high            0.07487                  0.07487                 0.06909               0.00638               0       0.00106            0.00042         2.55298
+4       Turnover only, low            0.00010                  0.00010                -0.00016              -0.00009               0       0.00028            0.00033         0.86115
+5      Turnover only, high           -0.00029                 -0.00029                -0.00027              -0.00016               0       0.00022            0.00023         0.94929
+6              Both active            0.09846                  0.09846                 0.08966               0.02611               0       0.00149            0.00032         4.66005
+7     Rebalancing confound            0.03338                  0.00754                 0.03326               0.00361               0       0.00042            0.00039         1.06727
+8  Mean-reversion confound            0.01686                  0.01686                 0.01684               0.00138               0       0.00042            0.00042         0.99906
+
+### discrimination
+                  Scenario  PGR-PLR  mean fraction sold  share-weighted PGR-PLR  momentum z, sold  momentum z, held   z tilt
+#                                                                                                                           
+1                     Null  0.00085             1.00000                 0.00085           0.00171          -0.00041  0.00211
+2    Disposition only, low  0.02663             1.00000                 0.02663           0.08520          -0.00403  0.08923
+3   Disposition only, high  0.07487             1.00000                 0.07487           0.25872          -0.00795  0.26666
+4       Turnover only, low  0.00010             1.00000                 0.00010           0.00236           0.00001  0.00235
+5      Turnover only, high -0.00029             1.00000                -0.00029           0.00005          -0.00017  0.00022
+6              Both active  0.09846             1.00000                 0.09846           0.33696          -0.05072  0.38768
+7     Rebalancing confound  0.03338             0.71225                 0.00754           0.57087          -0.00391  0.57478
+8  Mean-reversion confound  0.01686             1.00000                 0.01686           0.52299          -0.02379  0.54678
+
+### placebo
+                  Scenario  n_trades  n_pairs  n_days     diff   t_stat  diff_log    t_log
+#                                                                                         
+1                     Null     67370    29942     730  0.00023  0.65699   0.00023  0.68518
+2    Disposition only, low     69492    30387     730  0.00046  1.25727   0.00047  1.31403
+3   Disposition only, high     65460    28499     730 -0.00007 -0.47380  -0.00008 -0.50197
+4       Turnover only, low    129447    40326     730  0.00020  1.41307   0.00019  1.33340
+5      Turnover only, high    236053    43500     730 -0.00000 -0.08261  -0.00000 -0.09316
+6              Both active    169512    41739     730 -0.00025 -2.19760  -0.00023 -2.12047
+7     Rebalancing confound    289848    30838     730 -0.00004  0.06206  -0.00001  0.14804
+8  Mean-reversion confound     68882    30246     730 -0.00046 -1.30393  -0.00051 -1.49034
+
+round-trip cost per unit of annual turnover: 0.00500
+
+### cash_drag
+                beta_gross  t_gross  beta_net    t_net  mean gross return
+settlement lag                                                           
+0                 -0.00056 -0.15817  -0.00647 -1.85902            0.18648
+1                 -0.02202 -4.77485  -0.02738 -6.05722            0.16239
+3                 -0.02060 -3.63205  -0.02555 -4.58990            0.14515
+5                 -0.02118 -3.40419  -0.02577 -4.20994            0.13124
+
+### copula
+            realised corr(delta,kappa)  corr(delta,turnover)  beta_gross  beta_net  PGR-PLR
+copula rho                                                                                 
+ 0.0                          -0.04048              -0.61651     0.02820   0.02180  0.09846
+ 0.7                           0.67697              -0.25671     0.04517   0.03836  0.10401
+-0.7                          -0.60934              -0.82034     0.02196   0.01567  0.10036
+
+### replication_s1
+          PGR-PLR  se_diff    ratio  beta_gross  beta_net
+seed                                                     
+20260913  0.00085  0.00043  1.01694     0.00123  -0.00474
+7         0.00080  0.00044  1.01624    -0.01338  -0.01910
+
+### replication_s3
+          PGR-PLR  se_diff    ratio  beta_gross  beta_net
+seed                                                     
+20260913  0.07487  0.00108  7.38544     0.15070   0.14368
+7         0.06892  0.00092  6.76669     0.14513   0.13817
+
+### replication_s7
+          PGR-PLR  se_diff    ratio  beta_gross  beta_net
+seed                                                     
+20260913  0.03338  0.00043  1.83112     0.01354   0.00788
+7         0.02816  0.00046  1.69115     0.02475   0.01841
+
+elapsed 55s
