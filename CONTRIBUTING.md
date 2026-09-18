@@ -6,7 +6,7 @@
 git clone https://github.com/Urielledezma/Behavioural-Finance-Studies.git
 cd Behavioural-Finance-Studies
 pip install -r requirements.txt
-python -m pytest -q tests
+python -m pytest -q
 ```
 
 That is the whole setup. The results and executed notebooks are committed, so every
@@ -17,11 +17,11 @@ properties the reports rest on.
 
 Work goes straight to `main`. There are no pull requests and no review gate: push a
 piece when it is finished, and pull before you start the next one. With four people on
-studies that touch mostly separate folders, the coordination cost of a branch per study
-buys less than it charges.
+four projects that each live in their own folder, the coordination cost of a branch per
+project buys less than it charges.
 
-Branch only when the work can break a report for everyone else: a change to `src/` that
-moves numbers already reported, or an experiment you are not confident in. Name it
+Branch only when the work can break a report already delivered: a change to a project's
+`src/` that moves numbers already reported, or an experiment you are not confident in. Name it
 `fix/…`, `feat/…` or `exp/…`, merge it yourself once the tests pass and the notebook
 executes clean, and delete it.
 
@@ -42,20 +42,45 @@ obvious alternative. A commit that changes a number in a report explains what mo
 
 ## Where code goes
 
+Every project lives in `studies/pNN-<topic>/` and owns everything beneath it. Nothing in
+one project's folder imports from another's.
+
 | Kind of change | Where it belongs |
 |---|---|
-| A reusable calculation, estimator or simulation step | `src/`, with a test in `tests/` |
-| A parameter or seed | `src/bfsim/config.py`, never inline |
-| Prose, tables and figures for a study | that study's `build_notebook.py` |
-| A property a conclusion depends on | `tests/test_<study>_*.py` |
+| A calculation, estimator or simulation step | the project's `src/<package>/`, with a test in its `tests/` |
+| A parameter or seed | the project's config module, never inline in the report |
+| Prose, tables and figures | the project's `build_notebook.py` |
+| A property a conclusion depends on | the project's `tests/test_pNN_*.py` |
+| A dependency | `requirements.txt` at the root, shared by all four projects |
 
-## Working on a study
+Code is copied between projects rather than shared until a second project genuinely
+needs the same helper. At that point it moves to one place with a test, in its own
+commit, and both projects re-execute their reports.
+
+## Starting a new project
+
+1. **Copy the template** to a folder named after the project and its topic:
+
+   ```bash
+   cp -r studies/_template studies/p02-<topic>
+   ```
+
+2. **Rename the placeholders.** Replace `PNN` with the project number in the folder's
+   README, `build_notebook.py` and the notebook name, and rename `src/studypkg/` to a
+   package name no other project uses. Every project's `src/` goes on the path during
+   testing, so two packages with the same name shadow each other.
+3. **Write `PRE_ANALYSIS.md` and commit it before the first result exists.** The report
+   quotes it verbatim, so the commit history is the proof it came first.
+4. **Add the project to the table in the root README** in the same commit that creates
+   the folder.
+
+## Working on a project
 
 1. **Pull first.** You are committing to `main` alongside three other people.
 2. **Edit the prose in `build_notebook.py`, never in the `.ipynb`.** The notebook is
    regenerated from that file, so an edit made in Jupyter is overwritten on the next
    build and lost.
-3. **Rebuild and execute from a clean kernel**, from the study's folder:
+3. **Rebuild and execute from a clean kernel**, from the project's folder:
 
    ```bash
    python build_notebook.py
@@ -72,7 +97,7 @@ obvious alternative. A commit that changes a number in a report explains what mo
 
 Nobody is going to catch these for you, so run them yourself.
 
-- [ ] `python -m pytest -q tests` passes.
+- [ ] `python -m pytest -q` passes, from the repository root.
 - [ ] The notebook executes from a clean kernel with no errors.
 - [ ] No credential, token or `.env` file is staged. Check `git diff --cached`.
 - [ ] Every reported number has an interpretation in the prose beside it.
