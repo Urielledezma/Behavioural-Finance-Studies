@@ -6,6 +6,8 @@
 *.md     text eol=lf
 *.txt    text eol=lf
 *.csv    text eol=lf
+*.yml    text eol=lf
+*.cff    text eol=lf
 
 *.png    binary
 

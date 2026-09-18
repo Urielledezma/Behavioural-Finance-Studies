@@ -1,0 +1,48 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    # Recovery properties only. Executing the full notebooks takes minutes and
+    # rewrites committed outputs, so it stays a local step, run before a push.
+    runs-on: ubuntu-latest
+    name: recovery tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest -q tests
+
+  secrets:
+    runs-on: ubuntu-latest
+    name: no committed secrets
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # A .env in the tree is the failure mode with real consequences, and it
+      # costs nothing to check for on every push.
+      - name: Fail if a credential file is tracked
+        run: |
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$'; then
+            echo "::error::A credential file is tracked. Remove it from the index and rotate the credentials."
+            exit 1
+          fi
+          echo "No credential files tracked."
