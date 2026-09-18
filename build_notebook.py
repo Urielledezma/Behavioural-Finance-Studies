@@ -1,11 +1,12 @@
 """Assemble the P01 report notebook from source, so the document is itself
-reproducible.  Run `python build_notebook.py` then execute the notebook.
+reproducible.  Run `python build_notebook.py`, then execute the notebook.
 """
 
 import pathlib
 
 import nbformat as nbf
 
+ROOT = pathlib.Path(__file__).parent
 C = []
 
 
@@ -17,6 +18,12 @@ def code(src):
     C.append(nbf.v4.new_code_cell(src.strip("\n")))
 
 
+# The pre-analysis is embedded verbatim from the registered file rather than
+# paraphrased, since a pre-registration rewritten after the results is not one.
+PRE = (ROOT / "PRE_ANALYSIS.md").read_text(encoding="utf-8")
+PRE_BODY = PRE.split("\n", 4)[4].strip()
+PRE_QUOTED = "\n".join("> " + line if line else ">" for line in PRE_BODY.splitlines())
+
 # =========================================================================== 0
 md(r"""
 # **Recovering injected behavioural biases from a synthetic trading record**
@@ -24,25 +31,20 @@ md(r"""
 
 ---
 
-**Authors:** Alan Jesús Hernández Soto · Francisco Uriel Ledezma Chávez · Esteban Vega Campos · *(fourth member)*
-**Programme:** Ingeniería Financiera
-**Institution:** ITESO, Universidad Jesuita de Guadalajara
-**Course:** Comportamiento en las Finanzas y Toma de Decisiones
-**Date:** September 2026
+**Authors:** Alan Jesús Hernández Soto · Francisco Uriel Ledezma Chávez · Esteban Vega Campos · *(fourth member)*  
+**Programme:** Ingeniería Financiera  
+**Institution:** ITESO — Universidad Jesuita de Guadalajara  
+**Course:** Comportamiento en las Finanzas y Toma de Decisiones  
+**Professor:** Luis Felipe Gómez Estrada  
+**Date:** 17 September 2026
 
 ---
-
-We build a simulator that generates synthetic brokerage records, inject a disposition
-mechanism and an overprecision mechanism at magnitudes fixed in advance, and then try to
-recover those magnitudes with the estimators used on real data. The value of the exercise
-is entirely in the failures: a positive finding on real data can never be separated from a
-coding error, because there is no ground truth to check it against. Here there is one, and
-three of the eight scenarios below return a confident answer that is wrong.
 """)
 
 md(r"""
 ## Contents
 
+0. [The project in plain terms](#s0)
 1. [Pre-analysis statement](#s1)
 2. [Simulator design](#s2)
    - [2.1 The security universe](#s21)
