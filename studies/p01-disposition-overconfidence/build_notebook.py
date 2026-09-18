@@ -105,6 +105,11 @@ The assignment asks for one paragraph, written before any estimator is run, that
 md(PRE_QUOTED)
 
 code(r"""
+# A kernel left running keeps the version of `bfsim` it first imported, and
+# "Run All" does not restart it, so an edit to src/ would otherwise go unseen.
+%load_ext autoreload
+%autoreload 2
+
 import os, sys, pathlib, warnings
 
 # The library lives at the repository root and this study's outputs beside the
