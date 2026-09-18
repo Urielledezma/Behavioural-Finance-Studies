@@ -1,84 +1,114 @@
-# P01 — Behavioural Finance
+# Behavioural Finance Studies
 
-A simulator that generates synthetic brokerage records, injects a disposition mechanism
-and an overprecision mechanism at magnitudes fixed in advance, and then tries to recover
-those magnitudes with the estimators used on real data (Odean 1998; Barber & Odean 2000).
+[![checks](https://github.com/Urielledezma/Behavioural-Finance-Studies/actions/workflows/checks.yml/badge.svg)](https://github.com/Urielledezma/Behavioural-Finance-Studies/actions/workflows/checks.yml)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Jupyter](https://img.shields.io/badge/Jupyter-reports-F37626?logo=jupyter&logoColor=white)](https://jupyter.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-The report is `notebooks/P01_behavioral_finance.ipynb`. Everything it claims is computed
-by the notebook itself; nothing is pasted in.
+A series of studies in **behavioural finance**, written in **Python**, that share one
+principle: a bias is injected into simulated investors at a strength fixed in advance, so
+that the estimators used on real brokerage data can be checked against a ground truth
+that real data never provides. If an estimator cannot recover a parameter that was put
+there on purpose, the estimator is wrong, and the simulation says so before any real
+account is analysed.
 
-## Headline result
+Coursework for **Comportamiento en las Finanzas y Toma de Decisiones**, Financial
+Engineering programme, ITESO — Universidad Jesuita de Guadalajara.
 
-Two of the eight scenarios inject no bias at all and still return disposition ratios of
-**1.83** and **1.41**, both inside the range reported for real brokerage accounts, and one
-of them larger than the 1.74 produced by a genuine injected `delta = 0.3`. A mechanical
-rebalancing rule and a belief in mean reversion are indistinguishable from loss aversion on
-the headline statistic. The estimators are not broken — they compute exactly what they
-claim to compute — which is the point of having ground truth.
+**Team:** Alan Jesús Hernández Soto · Francisco Uriel Ledezma Chávez · Esteban Vega Campos · *(fourth member)*  
+**Professor:** Luis Felipe Gómez Estrada  
+**Term:** Autumn 2026 · 5th semester
 
-## Layout
+---
 
+## Research programme
+
+| Study | Question it answers | Report |
+|---|---|---|
+| P01 — Disposition and overconfidence | Do the standard estimators of the disposition effect and of overconfidence recover biases injected at known strengths, and which confounds fool them? | [`studies/p01-disposition-overconfidence/`](studies/p01-disposition-overconfidence) |
+| P02 onward | To be announced as the course releases them | — |
+
+Each study is self-contained, with its own report notebook, pre-analysis statement,
+drivers and results, while code that more than one study can use lives once in `src/`.
+
+---
+
+## Repository structure
+
+```text
+.
+├── src/
+│   └── bfsim/              # Trading simulator and estimators, shared across studies
+│       ├── config.py       # Every parameter as a frozen dataclass, plus the seed policy
+│       ├── prices.py       # Three-factor price panel and the leakage test
+│       ├── agents.py       # Trader population draws
+│       ├── engine.py       # Vectorised daily trading loop
+│       ├── estimators.py   # PGR/PLR, bootstraps, turnover regressions
+│       ├── scenarios.py    # The eight P01 configurations and the result tables
+│       └── figures.py      # Charts in the house palette
+├── studies/
+│   └── p01-disposition-overconfidence/  # Report, pre-analysis, drivers, results
+├── tests/                  # Properties each study's findings rest on
+└── .github/workflows/      # Tests and a secrets check on every push
 ```
-src/bfsim/
-  config.py       every parameter as a frozen dataclass, plus the seed policy
-  prices.py       three-factor price panel and the leakage placebo
-  agents.py       trader population draws
-  engine.py       the vectorised daily trading loop
-  estimators.py   PGR/PLR, bootstraps, turnover regressions
-  scenarios.py    the eight configurations and the result tables
-  figures.py      plots
-notebooks/        the written report
-results/          tables (CSV) and figures (PNG), regenerated on every run
-PRE_ANALYSIS.md   registered before any estimator was run
-build_notebook.py assembles the report notebook from source
-run_analysis.py   command-line driver; writes every table without the notebook
-```
 
-## Reproducing
+---
+
+## Quickstart
+
+**Requirements:** Python 3.12 and Jupyter.
 
 ```bash
+git clone https://github.com/Urielledezma/Behavioural-Finance-Studies.git
+cd Behavioural-Finance-Studies
 pip install -r requirements.txt
-
-python run_analysis.py                 # every table into results/, ~3 minutes
-python build_notebook.py               # rebuild the report from source
-jupyter nbconvert --to notebook --execute --inplace \
-    notebooks/P01_behavioral_finance.ipynb
+python -m pytest -q tests          # about fifteen seconds
 ```
 
-All randomness descends from a single master seed (`config.MASTER_SEED = 20260913`)
-through named, independently spawned generator streams — one each for prices, `delta`,
-`kappa`, wealth, position counts, the sell hazard, security selection and the bootstrap.
-Re-running from a clean interpreter reproduces every number exactly. `delta` and `kappa`
-draw from separate streams, so their independence is a property of the construction rather
-than of an inspection afterwards.
+Then open a study's notebook, or follow the *Running it* section of its README to
+regenerate its tables and re-execute the report from a clean kernel.
 
-## Design decisions a reader should know about
+---
 
-**The scenario table's `delta` and `kappa` are population means, not constants.** Each
-account draws from a Beta distribution with that mean. Without cross-sectional dispersion
-there is no `corr(delta, kappa)` to report and the turnover regression loses most of its
-identification.
+## Reproducibility
 
-**Every security carries the same expected log return.** Under a CAPM-like drift, expected
-log return varies by three percentage points a year across the cross-section and correlates
-−0.90 with idiosyncratic volatility, so any rule selecting on past returns acquires a drift
-differential it had no information about — observationally identical to leakage. This was
-found and fixed during construction; the episode is documented in the report.
+Every random draw descends from a fixed master seed through named, separate streams, so
+a report executed from a clean kernel reproduces every number it quotes exactly. Report
+notebooks are generated by a `build_notebook.py` beside them and versioned **with**
+their outputs, because the prose quotes the values the code cells produce. The tests
+assert the properties a study's conclusions rest on, such as a quiet null and recovery
+that moves with the injected parameter, rather than exact decimals, so they survive a
+change of library version whose conclusion still holds.
 
-**Gross return is a shadow portfolio, not a subtraction.** Each account runs a parallel
-portfolio taking identical decisions but filling at the mid with no commission. Gross is
-therefore the counterfactual return of the same behaviour in a frictionless market, which
-keeps the spread out of the gross measure by definition rather than by assertion.
+---
 
-**The leakage placebo de-duplicates and clusters by day.** A thousand accounts buying the
-same security on the same day is one decision observed a thousand times; counting them
-separately produced *t* = −7.5 on a panel with no predictability in it.
+## Conventions
 
-## Estimator conventions
+- Code, documentation and commit messages in English.
+- A report's prose is edited in its `build_notebook.py`, never in the `.ipynb`, which is
+  overwritten on every build.
+- Parameters and seeds live in `src/bfsim/config.py`, never inline in a report.
+- Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
-Only days on which the account sold something contribute to any count. A sale is counted at
-position level, with the share-weighted alternative computed alongside. The cost basis is
-per-lot, with average cost computed alongside. Positions exactly at their purchase price
-enter no count (realised frequency: zero). Standard errors resample **accounts**, never
-transactions; the naive position-day bootstrap is reported only to show that it understates
-the standard error by up to a factor of 4.6.
+---
+
+## Roadmap
+
+- [x] Repository scaffold, simulator library and recovery tests
+- [x] P01 — disposition effect and overprecision, eight scenarios
+- [ ] Further studies, as the course releases them
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the working model, commit conventions and
+the pre-push checklist.
+
+---
+
+## License and citation
+
+MIT — see [LICENSE](LICENSE). Citation metadata is in [CITATION.cff](CITATION.cff).
+The papers cited in the reports remain under their publishers' terms and are not
+redistributed here.
