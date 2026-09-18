@@ -603,49 +603,24 @@ md(r"""
 
 ## 10. Conclusions
 
-The simulator recovers what it is given. The null returns a disposition difference of 0.00085
-against a true value of zero, the recovered difference rises monotonically through 0.0266 and
-0.0749 as $\delta$ goes from 0.3 to 0.8, each estimator stays silent when only the other's
-parameter is active, and the turnover slope on net returns comes back at $-0.0078$ and
-$-0.0065$ against a round-trip cost schedule of $-0.005$ written into the code. That last
-number is the clearest statement of what the overconfidence regression actually measures: not a
-psychological parameter, but the commission and spread the account paid.
+| # | Scenario | Disposition, ratio | Turnover slope, net | Verdict |
+|---|---|---|---|---|
+| 1 | Null | 1.02 | $-0.0047$ | Both quiet |
+| 2 | Disposition, low | 1.74 | $+0.0565$ | Disposition recovered, slope spurious |
+| 3 | Disposition, high | 7.39 | $+0.1437$ | Disposition recovered, slope spurious |
+| 4 | Overtrading, low | 1.00 | $-0.0078$ | Cost recovered |
+| 5 | Overtrading, high | 1.00 | $-0.0065$ | Cost recovered, higher drag |
+| 6 | Both | 6.67 | $+0.0218$ | Disposition recovered, slope reversed |
+| 7 | Rebalancing | 1.83 | $+0.0079$ | Disposition spurious |
+| 8 | Belief in reversal | 1.41 | $+0.0580$ | Both spurious |
 
-The failures are more instructive than the recoveries. Two scenarios with no injected bias at
-all return disposition ratios of 1.83 and 1.41, both inside the range reported for real
-brokerage accounts and one of them larger than what a genuine $\delta$ of 0.3 produces. A
-mechanical rebalancing rule and a belief in mean reversion are, on the headline statistic,
-indistinguishable from loss aversion — and since the estimator is correct in the sense that it
-computes exactly what it claims to compute, no amount of care in implementing it would have
-revealed the problem. Only the ground truth does.
+**Does the simulator recover what it is given?** It does, since the null returns a difference of 0.00085 against a true value of zero, the recovered difference rises through 0.0266 and 0.0749 as $\delta$ goes from 0.3 to 0.8, the disposition estimator stays silent when only $\kappa$ is active, and the net turnover slope comes back at $-0.0078$ and $-0.0065$ against the $-0.005$ cost written into the model, a last result that shows the overconfidence regression measures the commission and spread the account paid rather than a psychological parameter.
 
-Three methodological consequences follow, and they are the ones we would carry to real data.
-First, the difference $\widehat{PGR}-\widehat{PLR}$ is not a scale-free measure of a bias,
-since scenario 6 posts a 32 % larger difference than scenario 3 on an identical injected
-$\delta$ purely by trading more; the ratio must be reported alongside it, and neither is the
-parameter. Second, clustering has to be argued rather than chosen: the account bootstrap
-inflates standard errors by up to 4.6 times relative to the naive position-day version, and yet
-is still a lower bound, because within a single price panel the null's $t$ reached 1.95 while
-the effect across eight redrawn panels was 0.00022. Third, wherever a selling rule conditions on
-the purchase price, turnover is an outcome and not a regressor, and the sign of the behavioural
-claim depends on which of the two is on the right-hand side.
+**Where do the estimators fail, and why does it matter?** Two scenarios with no injected bias return disposition ratios of 1.83 and 1.41, the first larger than what a genuine $\delta$ of 0.3 produces and both of the order Odean reports for real investors, so a mechanical rebalancing rule and a belief in reversal look like a disposition effect on the headline statistic, and because the estimator computes exactly what it claims, no care in implementing it would have revealed the problem, which only the known ground truth does. The overconfidence regression fails in the opposite direction, since in every scenario where selling depends on gains it reports that trading *raises* returns, an artefact of reverse causality strong enough to reverse the sign of the net slope in scenario 6.
 
-The exercise also produced one error worth naming, since the assignment asks for the diagnosis
-rather than a clean result. Our first price specification gave each security a CAPM-like drift,
-which makes expected log returns vary by three percentage points a year across the
-cross-section and correlate $-0.90$ with idiosyncratic volatility; a rebalancing rule that buys
-laggards then acquires a drift differential it had no information about, which is
-observationally identical to leakage. Imposing a common expected log return removed it at the
-source. The leakage placebo that caught it had to be fixed too, because counting the same
-purchase once per account produced $t=-7.5$ on a panel with no predictability in it — the same
-pseudo-replication failure the clustering discussion is about, appearing in the diagnostic
-rather than in the estimator.
+**What should carry over to real data?** Three methodological lessons, because the difference $\widehat{PGR}-\widehat{PLR}$ is not a scale-free measure of the bias and must be reported next to the ratio, because clustering by account can make standard errors 4.6 times larger than the naive version and is still only a lower bound when every account shares one market, and because turnover is an outcome rather than a regressor wherever selling depends on the purchase price. We would ask real data for three things in order, namely the size of each sale relative to the position, which separates rebalancing from a reference point, the recent return of each stock next to its purchase price, which separates a belief about prices from a reference point, and a source of variation in turnover that returns cannot cause, without which the overconfidence coefficient does not mean what it is usually taken to mean.
 
-What we would want from real data, in order, is the size of each sale relative to the position,
-the trailing return of the security alongside its purchase price, and an instrument for
-turnover. The first separates rebalancing from a reference point, the second separates a belief
-about prices from a reference point, and the third is the only thing that makes the
-overconfidence coefficient mean what it is usually taken to mean.
+**What limits these conclusions?** The simulated traders follow simple rules with a single mechanism each, so real investors mixing several motives at once would be harder to separate than our scenarios suggest, and our market has no transaction-driven price impact, no taxes and no calendar effects such as the year-end loss selling documented in the literature. The construction also produced two errors of its own that we corrected rather than hid, a drift specification that mimicked leakage and a leakage test that counted the same purchase a thousand times, and both are recorded in sections 2.1 and 4 because finding them is precisely what a simulation with known ground truth is for.
 
 ---
 """)
@@ -669,23 +644,17 @@ md(r"""
 
 ## 12. Reproducibility
 
-The simulator lives in `src/bfsim/` as six modules: `config.py` holds every parameter as a
-frozen dataclass and the seed policy, `prices.py` the factor model and the leakage placebo,
-`agents.py` the population draws, `engine.py` the daily loop, `estimators.py` the two
-estimators and their bootstraps, and `scenarios.py` the eight configurations and the tables
-below. All randomness descends from a single master seed through named, independently spawned
-streams, so re-running this notebook from a clean kernel reproduces every number in it exactly.
-Every table is written to `results/` and every figure to `results/figures/`.
+The simulator lives in `src/bfsim/` as seven modules, with `config.py` holding every parameter and the seed policy, `prices.py` the factor model and the leakage test, `agents.py` the population draws, `engine.py` the daily trading loop, `estimators.py` the two estimators and their bootstraps, `scenarios.py` the eight configurations and the tables, and `figures.py` the charts. All randomness descends from a single master seed through separate named streams, so running this notebook from a clean kernel reproduces every number in it exactly, and every table is written to `results/` and every figure to `results/figures/`.
 """)
 
 code(r"""
-import platform, statsmodels, matplotlib, nbformat
+import platform, statsmodels, matplotlib
 print(f"python      {platform.python_version()}")
 for m in (np, pd, statsmodels, matplotlib):
     print(f"{m.__name__:<12}{m.__version__}")
 print(f"master seed {MASTER_SEED}")
-print(f"scenarios   {len(SCENARIOS)}   traders/scenario {SCENARIOS[0].n_traders}   "
-      f"securities {price_cfg.n_securities}   days {price_cfg.n_days}")
+print(f"scenarios   {len(SCENARIOS)}   traders per scenario {SCENARIOS[0].n_traders}   "
+      f"stocks {price_cfg.n_securities}   days {price_cfg.n_days}")
 """)
 
 nb = nbf.v4.new_notebook(cells=C)
@@ -693,6 +662,6 @@ nb.metadata = {
     "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
     "language_info": {"name": "python", "version": "3.12.5"},
 }
-path = pathlib.Path("notebooks/P01_behavioral_finance.ipynb")
+path = ROOT / "notebooks" / "P01_behavioral_finance.ipynb"
 nbf.write(nb, str(path))
-print(f"wrote {path} with {len(C)} cells")
+print(f"wrote {path.relative_to(ROOT)} with {len(C)} cells")
