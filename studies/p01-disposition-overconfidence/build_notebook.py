@@ -107,11 +107,11 @@ md(PRE_QUOTED)
 code(r"""
 import os, sys, pathlib, warnings
 
-# Work from the repository root whether the notebook is launched from here or
-# from notebooks/, so that `src/` and `results/` resolve the same way either way.
+# The library lives at the repository root and this study's outputs beside the
+# notebook, so both are resolved from the root wherever the kernel starts.
 ROOT = next(p for p in [pathlib.Path.cwd(), *pathlib.Path.cwd().parents]
             if (p / "src" / "bfsim").is_dir())
-os.chdir(ROOT)
+os.chdir(ROOT / "studies" / "p01-disposition-overconfidence")
 sys.path.insert(0, str(ROOT / "src"))
 warnings.filterwarnings("ignore")
 
@@ -644,7 +644,7 @@ md(r"""
 
 ## 12. Reproducibility
 
-The simulator lives in `src/bfsim/` as seven modules, with `config.py` holding every parameter and the seed policy, `prices.py` the factor model and the leakage test, `agents.py` the population draws, `engine.py` the daily trading loop, `estimators.py` the two estimators and their bootstraps, `scenarios.py` the eight configurations and the tables, and `figures.py` the charts. All randomness descends from a single master seed through separate named streams, so running this notebook from a clean kernel reproduces every number in it exactly, and every table is written to `results/` and every figure to `results/figures/`.
+The simulator lives at the repository root in `src/bfsim/` as seven modules, with `config.py` holding every parameter and the seed policy, `prices.py` the factor model and the leakage test, `agents.py` the population draws, `engine.py` the daily trading loop, `estimators.py` the two estimators and their bootstraps, `scenarios.py` the eight configurations and the tables, and `figures.py` the charts. All randomness descends from a single master seed through separate named streams, so running this notebook from a clean kernel reproduces every number in it exactly, and every table is written to this study's `results/` folder and every figure to `results/figures/`.
 """)
 
 code(r"""
@@ -662,6 +662,6 @@ nb.metadata = {
     "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
     "language_info": {"name": "python", "version": "3.12.5"},
 }
-path = ROOT / "notebooks" / "P01_behavioral_finance.ipynb"
+path = ROOT / "P01_behavioral_finance.ipynb"
 nbf.write(nb, str(path))
-print(f"wrote {path.relative_to(ROOT)} with {len(C)} cells")
+print(f"wrote {path.name} with {len(C)} cells")

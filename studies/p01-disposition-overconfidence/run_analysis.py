@@ -2,7 +2,7 @@
 
     python run_analysis.py [--boot 2000] [--seeds 8] [--quick]
 
-Writes CSVs to results/ and a plain-text digest to results/summary.txt.
+Writes CSVs to this study's results/ and a plain-text digest to results/summary.txt.
 """
 
 import argparse
@@ -13,7 +13,8 @@ from dataclasses import replace
 
 import pandas as pd
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "src"))
+HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[1] / "src"))
 
 from bfsim.config import CostConfig, EngineConfig  # noqa: E402
 from bfsim.scenarios import (  # noqa: E402
@@ -21,7 +22,7 @@ from bfsim.scenarios import (  # noqa: E402
     independence_table, placebo_table, replicate_seeds, results_table, run_all,
 )
 
-RESULTS = pathlib.Path(__file__).parent / "results"
+RESULTS = HERE / "results"
 SEEDS = [20260913, 7, 101, 4242, 31337, 2, 13, 55]
 
 

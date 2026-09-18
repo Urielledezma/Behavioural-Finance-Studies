@@ -13,3 +13,5 @@
 # declared as Python so repository statistics reflect the code, not the container.
 *.ipynb  text eol=lf linguist-language=Python
 
+# Regenerated on every run: kept out of diff noise and language statistics.
+studies/*/results/**  linguist-generated=true
