@@ -550,15 +550,13 @@ md(r"""
 
 ## 8. Standard errors and clustering
 
-Positions inside an account share the account's $\delta$, its holding-period distribution and
-its securities. Treating position-days as independent is therefore wrong, and the simulator
-prices exactly how wrong.
+The positions of one account share its $\delta$, its holding periods and often its stocks, so treating each position-day as an independent observation overstates how much information the data contain, and the simulation measures by how much.
 """)
 
 code(r"""
 se = conv[["Scenario", "se (account)", "se (position-day)", "understatement"]].copy()
-se["t if clustered"] = table["PGR-PLR"] / conv["se (account)"]
-se["t if not clustered"] = table["PGR-PLR"] / conv["se (position-day)"]
+se["t, resampling accounts"] = table["PGR-PLR"] / conv["se (account)"]
+se["t, resampling position-days"] = table["PGR-PLR"] / conv["se (position-day)"]
 se
 """)
 
@@ -569,28 +567,13 @@ fx.bootstrap_density(draws, f"{FIG}/bootstrap.png"); plt.show()
 for k in (1, 3, 6, 7, 8):
     lo, hi = outputs[k].boot["ci_diff"]
     rlo, rhi = outputs[k].boot["ci_ratio"]
-    print(f"scenario {k}: diff 95% CI [{lo:+.5f}, {hi:+.5f}]   ratio 95% CI [{rlo:.3f}, {rhi:.3f}]")
+    print(f"scenario {k}: difference 95% CI [{lo:+.5f}, {hi:+.5f}]   ratio 95% CI [{rlo:.3f}, {rhi:.3f}]")
 """)
 
 md(r"""
-The account bootstrap gives standard errors between 1.0 and 4.6 times the naive position-day
-bootstrap, and the multiple tracks how concentrated the effect is within accounts: it is 1.00
-in the null and in the turnover-only scenarios, where realisations really are close to
-independent coin flips, 2.32 in scenario 3 and 4.63 in scenario 6, where each account's
-$\delta$ makes all of its position-days move together. In scenario 6 that factor takes the
-$t$-statistic from 66 to 308 — both reject, so nothing turns on it here, but the same factor
-applied to a genuinely marginal effect manufactures significance out of nothing.
+Resampling accounts gives standard errors between roughly 1 and 4.6 times those of the naive position-day bootstrap, and the multiple grows with how strongly the effect is concentrated within accounts, since it is about 1 in the null and the overtrading scenarios, where sales really behave like independent coin flips, 2.3 in scenario 3 and 4.6 in scenario 6, where each account's $\delta$ moves all its positions together, so in scenario 6 the naive version inflates the $t$ from 66 to 308. Both reject here, so nothing turns on it in this case, but the same factor applied to a marginal effect manufactures significance out of nothing.
 
-Section 4 adds the caveat that matters more. Clustering by account handles dependence *within*
-an account and does nothing about the dependence induced by a single shared price path across
-accounts, which is why the null's within-panel $t$ of 1.95 coexists with a mean effect of
-0.00022 across redrawn panels. In real data the panel cannot be redrawn, so the honest reading
-is that account-clustered standard errors are a lower bound on the uncertainty and a disposition
-ratio inside roughly $1.00\pm0.03$ should not be reported as a finding at all.
-
-For the overconfidence regression the unit of observation is the account itself, so there is no
-cluster structure left to correct; HC1 handles the heteroskedasticity that account size
-introduces.
+Section 4 adds the more important caveat, because clustering by account handles dependence *within* an account and does nothing about the single market that all accounts share, which is why the null's $t$ of 1.95 in one market coexists with a mean effect of 0.00022 across eight, so on real data account-clustered standard errors are best read as a lower bound on the uncertainty. The overconfidence regression has one observation per account, so no clustering is left to do there, and its HC1 standard errors only correct for the fact that the noise in returns differs across accounts of different size and risk.
 
 ---
 """)
@@ -601,45 +584,15 @@ md(r"""
 
 ## 9. What the estimators cannot distinguish
 
-The eight scenarios produce three pairs that the headline statistics cannot tell apart, and
-each has a different remedy.
+The eight scenarios produce three pairs that the headline statistics cannot tell apart, and each pair needs different data to be separated.
 
-**A reference point cannot be told from a weight target.** Scenario 2 injects $\delta=0.3$ and
-returns a ratio of 1.74; scenario 7 injects nothing, rebalances monthly, and returns 1.83. Both
-sit inside the range reported for real brokerage data. Separating them needs the *size* of each
-sale relative to the position, which brokerage extracts do carry: rebalancing trims, with a mean
-sold fraction of 0.712 against 1.000 for a reference-point rule, and weighting realisations by
-share collapses the rebalancing estimate by a factor of 4.4 while leaving the genuine effect
-untouched. Holdings-level weights and, better, any record of a stated target allocation would
-settle it outright.
+**A reference point cannot be told from a weight target.** Scenario 2 injects $\delta = 0.3$ and returns a ratio of 1.74, while scenario 7 injects nothing, rebalances monthly and returns 1.83, and what separates them is the size of each sale relative to the position, which brokerage records usually carry, since rebalancing trims with a mean fraction sold of 0.712 and weighting sales by that fraction collapses its estimate by a factor of 4.4 while leaving the genuine effect untouched, and portfolio weights or a stated target allocation would settle the question outright.
 
-**A reference point cannot be told from a belief about the price path.** Scenario 8's agents
-never observe their purchase price, yet return a ratio of 1.41, because trailing return and
-gain-versus-basis are correlated. Partial-sale weighting does not help, since the sales are
-whole. What separates them is the trailing return of the security, which is observable: per unit
-of measured disposition the momentum tilt is 32.4 in scenario 8 against 3.6 in scenario 3. The
-decisive test is a joint model of the sale decision on both the gain indicator and the trailing
-return, which is how Grinblatt and Han separate the two channels; if the gain indicator loses
-its explanatory power once momentum is included, the reference point was never doing the work.
-Neither PGR nor PLR can perform that test, because both compress the decision into a single
-binary classification against one reference price.
+**A reference point cannot be told from a belief about prices.** The traders of scenario 8 never look at their purchase price and still return a ratio of 1.41, because recent returns and gains against the purchase price move together, so what separates the two mechanisms is the recent return of each stock, which is observable. A model of the sale decision that includes both the gain indicator and the recent return would show which one carries the explanatory power, a separation that neither PGR nor PLR can make because both reduce each decision to one comparison against one reference price, and Grinblatt and Han (2005) draw the analogous line on the price side, separating an unrealised capital-gains overhang from past returns.
 
-**A cost of trading cannot be told from an effect of performance on trading.** Wherever the
-selling rule conditions on the purchase price, turnover is partly an outcome of the return, and
-the regression of return on turnover reads the arrow backwards: scenario 3's gross slope is
-$+0.151$ even though the injected $\delta$ correlates $-0.026$ with gross return. Within the
-simulator the fix is to regress on the injected $\kappa$, which flips scenario 6's net slope
-from $+0.022$ to $-0.009$. Real data has no injected parameter, so it needs an instrument that
-moves turnover without being moved by returns — a change in the commission schedule, a broker
-platform migration, a tax rule change — or a panel long enough for account fixed effects with
-lagged turnover. The cross-sectional regression on its own cannot do it, and this is the
-limitation that most directly qualifies Barber and Odean's cross-sectional result.
+**A cost of trading cannot be told from an effect of performance on trading.** Wherever selling depends on the purchase price, turnover is partly an outcome of the return, so the regression reads the arrow backwards, with a gross slope of $+0.151$ in scenario 3 although the injected $\delta$ correlates $-0.026$ with gross return. Inside the simulation the remedy is to regress on $\kappa$, which reverses the net slope of scenario 6 from $+0.022$ to $-0.009$, while real data would need something that changes turnover without being changed by returns, such as a change in the commission schedule, a platform migration or a tax rule, or a panel long enough to compare each account with itself over time, since the cross-sectional regression alone cannot do it.
 
-A fourth thing no statistic here can separate is the magnitude of a bias from the frequency of
-acting on it. Scenario 6 has the same injected $\delta$ as scenario 3 and a 32 % larger measured
-difference, purely because it trades more. Reporting the ratio alongside the difference is the
-minimum defence; recovering the underlying hazard tilt would require modelling the holding
-period explicitly, which is a duration model rather than a proportion.
+A fourth confusion runs through all of them, since the size of a bias cannot be separated from how often the trader acts on it, as scenario 6 shows by posting a difference 32 % larger than scenario 3 with the same injected $\delta$, and reporting the ratio next to the difference is the minimum defence, while recovering the underlying tilt would require modelling holding periods directly, with a duration model rather than a proportion.
 
 ---
 """)
