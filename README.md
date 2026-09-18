@@ -15,7 +15,7 @@ account is analysed.
 Coursework for **Comportamiento en las Finanzas y Toma de Decisiones**, Financial
 Engineering programme, ITESO — Universidad Jesuita de Guadalajara.
 
-**Team:** Alan Jesús Hernández Soto · Francisco Uriel Ledezma Chávez · Esteban Vega Campos · *(fourth member)*  
+**Team:** Alan Jesús Hernández Soto · Francisco Uriel Ledezma Chávez · Esteban Vega Campos · Santiago Villegas Baltazar  
 **Professor:** Luis Felipe Gómez Estrada  
 **Term:** Autumn 2026 · 5th semester
 

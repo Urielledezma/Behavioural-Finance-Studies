@@ -31,7 +31,7 @@ md(r"""
 
 ---
 
-**Authors:** Alan Jesús Hernández Soto · Francisco Uriel Ledezma Chávez · Esteban Vega Campos · *(fourth member)*  
+**Authors:** Alan Jesús Hernández Soto · Francisco Uriel Ledezma Chávez · Esteban Vega Campos · Santiago Villegas Baltazar  
 **Programme:** Ingeniería Financiera  
 **Institution:** ITESO — Universidad Jesuita de Guadalajara  
 **Course:** Comportamiento en las Finanzas y Toma de Decisiones  
