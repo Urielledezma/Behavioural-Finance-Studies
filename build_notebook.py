@@ -397,28 +397,13 @@ md(r"""
 
 # =========================================================================== 5
 md(r"""
----
-
 <a id="s5"></a>
 
 ## 5. The scenarios where something happened
 
 ### 5.1 Scenario 6: the difference is not a scale-free measure of the bias
 
-Scenario 6 injects $\delta=0.8$ and $\kappa=0.8$ together. We predicted the measured
-disposition would be **attenuated** relative to scenario 3, on the reasoning that higher churn
-shortens holding periods and leaves positions closer to their purchase price. **That prediction
-is wrong in the difference and right in the ratio**, and the two disagreeing is the point.
-The difference rises from 0.0749 to 0.0985 while the ratio falls from 7.39 to 6.67.
-
-The reason is that $\widehat{PGR}-\widehat{PLR}$ is not scale-free. Raising $\kappa$ raises
-both realisation rates roughly proportionally — PGR goes from 0.0866 to 0.1158 and PLR from
-0.0117 to 0.0174 — so a fixed multiplicative tilt produces a larger absolute gap simply because
-both levels are larger. The ratio strips the level out and does fall, by the modest 10 % that
-the shortened holding period justifies. A researcher reporting only the difference would
-conclude that scenario 6's population is 32 % more loss-averse than scenario 3's, when the two
-carry an identical injected $\delta$ and differ only in how often they trade. Odean reports
-both statistics; this is why.
+Scenario 6 injects $\delta = 0.8$ and $\kappa = 0.8$ together, and its ratio falls from 7.39 to 6.67 relative to scenario 3 as predicted, while the difference moves the other way, from 0.0749 to 0.0985. The difference is not scale-free, because raising $\kappa$ raises both realisation rates roughly in proportion, with PGR going from 0.0866 to 0.1158 and PLR from 0.0117 to 0.0174, so the same multiplicative tilt produces a larger absolute gap simply because both levels are higher, and a researcher reporting only the difference would conclude that the traders of scenario 6 are 32 % more disposition-prone than those of scenario 3 when both carry the same injected $\delta$ and differ only in how often they trade, which is why the ratio has to be reported next to the difference.
 """)
 
 code(r"""
@@ -428,42 +413,17 @@ conv
 """)
 
 md(r"""
+The conventions table also prices the choices of section 2.4, since counting every day instead of only sale days shrinks the scenario 3 difference from 0.0749 to 0.0064 and moves the ratio from 7.39 to 9.14, which shows that the sale-day rule is not a neutral bookkeeping choice but one that changes the level of both statistics, and although the differences keep their ordering across scenarios under either rule, the ratios do not, since scenarios 2 and 7 trade places (1.86 against 1.85 when silent days count), so a genuine disposition of 0.3 outranks rebalancing under one convention and not under the other.
+
 ### 5.2 Scenario 7: rebalancing, and the convention that gives it away
 
-Scenario 7 injects nothing at all. Accounts hold a target of equal weights and, once a month,
-trim any position whose weight has drifted more than 25 % above target, redistributing the
-proceeds to the positions that are below it. There is no reference point anywhere in the rule
-and no parameter to recover. The estimator nevertheless returns
-$\widehat{PGR}-\widehat{PLR} = 0.0334$ with a $t$ of 70, and a ratio of 1.83 — squarely inside
-the range Odean reports for real brokerage accounts, and larger than the 1.74 that scenario 2
-produces from a genuine injected $\delta$ of 0.3. Across eight redrawn panels it is
-$0.0320\pm0.0027$, so it is not a fluke of one market. **A mechanical portfolio rule with no
-behavioural content is indistinguishable from moderate loss aversion on the headline statistic.**
+Scenario 7 injects nothing at all, since its traders simply keep equal weights by trimming, once a month, any position that has grown more than 25 % above its target and topping up the positions below it, and yet the estimator returns a difference of 0.0334 with a $t$ of 70 and a ratio of 1.83, larger than the 1.74 that a genuine $\delta$ of 0.3 produces in scenario 2 and above the ratio of about 1.5 implied by the PGR of 0.148 and PLR of 0.098 that Odean (1998) reports for real brokerage accounts. Across eight redrawn markets it stays at $0.0320\pm0.0027$, so the result does not depend on one market path, and the mechanism is arithmetic rather than psychological, because a stock that rises gains weight and gets trimmed while one that falls loses weight and gets topped up, so the rule sells winners and buys losers because that is what equal weighting means.
 
-The mechanism is arithmetic rather than psychological. A position that rises gains weight and
-breaches the band; a position that falls loses weight and is topped up. The rule sells winners
-and buys losers because that is what equal-weighting means, and the disposition estimator has
-no way to know that the seller was following a weight target rather than a reference point.
+What gives it away is the partial-sale convention, since rebalancing trims rather than closes, with a mean fraction sold of 0.712 against exactly 1.000 in every other scenario, so weighting each sale by the fraction sold collapses the estimate from 0.0334 to 0.0075 while leaving every other scenario unchanged to five decimals, which is a test anyone can run on real data where the size of each sale is recorded.
 
-What does give it away is the partial-sale convention. Rebalancing trims: the mean fraction of
-a position sold when a sale occurs is 0.712 in scenario 7 and exactly 1.000 in all seven other
-scenarios. Counting realisations share-weighted rather than at position level therefore
-collapses scenario 7's estimate from 0.0334 to 0.0075, a factor of 4.4, while leaving every
-other scenario unchanged to five decimal places. That is a usable test on real data: if a
-measured disposition effect largely disappears when partial sales are weighted by size, the
-selling is rebalancing.
+### 5.3 Scenario 8: a belief in reversal with the same appearance
 
-### 5.3 Scenario 8: a belief in reversal, wearing the same clothes
-
-Scenario 8 also injects nothing. Agents believe past winners revert, so the sell hazard is
-scaled by $1 + 0.6 z_{j,t}$ where $z$ is the security's cross-sectionally standardised
-trailing 20-day return. The rule never looks at the purchase price. Because trailing return
-and gain-versus-basis are correlated, the estimator returns 0.0169 with a $t$ of 38 and a ratio
-of 1.41.
-
-This one is harder to unmask than rebalancing, because the sales are whole positions and the
-share-weighted convention does not move it at all (0.0169 under both). The tell has to come
-from outside the purchase price.
+Scenario 8 also injects nothing, and its traders believe that recent winners will fall back, so their probability of selling rises with the stock's return over the last 20 days, a rule that never looks at the purchase price but still produces a difference of 0.0169 with a $t$ of 38 and a ratio of 1.41, because a stock that rose recently is usually also above its purchase price. This case is harder to unmask than rebalancing, because the sales are of whole positions and the partial-sale test leaves it at 0.0169, so the evidence has to come from something other than the purchase price.
 """)
 
 code(r"""
@@ -477,14 +437,7 @@ disc
 """)
 
 md(r"""
-The trailing-momentum tilt — the mean standardised past return of what was sold, minus that of
-what was held on the same days — separates the mechanisms, but only in ratio to the disposition
-measured alongside it. A reference-point rule does tilt momentum, because winners against basis
-are usually winners against the recent past too: scenario 3 sells positions whose trailing
-$z$ is 0.267 above what it holds. But per unit of measured disposition the confounds are far
-more momentum-driven, at 32.4 for scenario 8 and 17.2 for scenario 7 against 3.6 for scenario 3
-and 3.3 for scenario 2. An account whose sales are extremely momentum-selective yet only mildly
-disposition-selective is not following a reference point.
+That evidence is the recent performance of what was sold compared with what was kept on the same days, measured as a standardised 20-day return. A reference-point rule also tilts it, since winners against the purchase price tend to be recent winners too, so scenario 3 sells stocks whose recent return is 0.267 standard deviations above those it keeps, but per unit of measured disposition the tilt is 32.4 in scenario 8 and 17.2 in scenario 7 against 3.6 in scenario 3 and 3.4 in scenario 2, so an account whose sales follow recent returns far more closely than its disposition measure would suggest is not following a reference point.
 
 ---
 """)
