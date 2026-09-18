@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 title: >-
-  Behavioural Finance Studies: Simulation-Based Tests of the Estimators of
-  Investor Bias
+  Behavioural Finance Studies: Four Course Projects in Behavioural Finance and
+  Decision-Making
 message: >-
   If you use this repository or its methodology, please cite it as below.
 type: software
@@ -19,14 +19,15 @@ authors:
     family-names: Villegas Baltazar
 repository-code: "https://github.com/Urielledezma/Behavioural-Finance-Studies"
 abstract: >-
-  A series of studies in behavioural finance built on a common principle: a
-  bias is injected into simulated investors at a strength fixed in advance, so
-  that the estimators used on real brokerage data can be checked against a known
-  ground truth. The first study, P01, injects the disposition effect and
-  overprecision into synthetic trading records for eight scenarios and tests
-  whether the proportion-of-gains-realised estimator and the turnover
-  regression recover them, including two confounds under which the
-  disposition estimator fires with no bias present.
+  Four independent projects in behavioural finance, written for the course
+  Comportamiento en las Finanzas y Toma de Decisiones at ITESO, each with its
+  own report, code, tests and results. The first, P01, checks the estimators
+  used on real brokerage data against a known ground truth: it injects the
+  disposition effect and overprecision into synthetic trading records at
+  strengths fixed in advance, for eight scenarios, and tests whether the
+  proportion-of-gains-realised estimator and the turnover regression recover
+  them, including two confounds under which the disposition estimator fires
+  with no bias present.
 keywords:
   - behavioural finance
   - disposition effect

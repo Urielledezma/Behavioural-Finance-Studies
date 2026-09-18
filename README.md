@@ -5,12 +5,10 @@
 [![Jupyter](https://img.shields.io/badge/Jupyter-reports-F37626?logo=jupyter&logoColor=white)](https://jupyter.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A series of studies in **behavioural finance**, written in **Python**, that share one
-principle: a bias is injected into simulated investors at a strength fixed in advance, so
-that the estimators used on real brokerage data can be checked against a ground truth
-that real data never provides. If an estimator cannot recover a parameter that was put
-there on purpose, the estimator is wrong, and the simulation says so before any real
-account is analysed.
+Four independent projects in **behavioural finance**, written in **Python**, one folder
+each. They share a team, a course and a set of working conventions, not code or a
+research question: each project has its own report, library, tests and results, and can
+be read, run and graded without opening any other.
 
 Coursework for **Comportamiento en las Finanzas y Toma de Decisiones**, Financial
 Engineering programme, ITESO — Universidad Jesuita de Guadalajara.
@@ -21,15 +19,17 @@ Engineering programme, ITESO — Universidad Jesuita de Guadalajara.
 
 ---
 
-## Research programme
+## Projects
 
-| Study | Question it answers | Report |
+| Project | Question it answers | Folder |
 |---|---|---|
 | P01 — Disposition and overconfidence | Do the standard estimators of the disposition effect and of overconfidence recover biases injected at known strengths, and which confounds fool them? | [`studies/p01-disposition-overconfidence/`](studies/p01-disposition-overconfidence) |
-| P02 onward | To be announced as the course releases them | — |
+| P02 | Not yet assigned | — |
+| P03 | Not yet assigned | — |
+| P04 | Not yet assigned | — |
 
-Each study is self-contained, with its own report notebook, pre-analysis statement,
-drivers and results, while code that more than one study can use lives once in `src/`.
+A new project starts as a copy of [`studies/_template/`](studies/_template); the steps are
+in [CONTRIBUTING.md](CONTRIBUTING.md#starting-a-new-project).
 
 ---
 
@@ -37,20 +37,23 @@ drivers and results, while code that more than one study can use lives once in `
 
 ```text
 .
-├── src/
-│   └── bfsim/              # Trading simulator and estimators, shared across studies
-│       ├── config.py       # Every parameter as a frozen dataclass, plus the seed policy
-│       ├── prices.py       # Three-factor price panel and the leakage test
-│       ├── agents.py       # Trader population draws
-│       ├── engine.py       # Vectorised daily trading loop
-│       ├── estimators.py   # PGR/PLR, bootstraps, turnover regressions
-│       ├── scenarios.py    # The eight P01 configurations and the result tables
-│       └── figures.py      # Charts in the house palette
 ├── studies/
-│   └── p01-disposition-overconfidence/  # Report, pre-analysis, drivers, results
-├── tests/                  # Properties each study's findings rest on
+│   ├── p01-disposition-overconfidence/
+│   │   ├── P01_behavioral_finance.ipynb   # The report, versioned with its outputs
+│   │   ├── build_notebook.py              # The report's source of truth
+│   │   ├── PRE_ANALYSIS.md                # Expectations, written before any result
+│   │   ├── run_analysis.py                # Every table without the notebook
+│   │   ├── src/bfsim/                     # Simulator and estimators, P01 only
+│   │   ├── tests/                         # Properties P01's conclusions rest on
+│   │   └── results/                       # CSV tables and PNG figures
+│   └── _template/                         # Skeleton copied to start P02–P04
+├── pytest.ini              # Collects every project's tests from studies/
+├── requirements.txt        # One environment for all four projects
 └── .github/workflows/      # Tests and a secrets check on every push
 ```
+
+Code is not shared between projects by default. A helper moves to a common location only
+once a second project actually needs it, and not in anticipation.
 
 ---
 
@@ -62,23 +65,23 @@ drivers and results, while code that more than one study can use lives once in `
 git clone https://github.com/Urielledezma/Behavioural-Finance-Studies.git
 cd Behavioural-Finance-Studies
 pip install -r requirements.txt
-python -m pytest -q tests          # about fifteen seconds
+python -m pytest -q                # every project's tests, about twenty seconds
 ```
 
-Then open a study's notebook, or follow the *Running it* section of its README to
+Then open a project's notebook, or follow the *Running it* section of its README to
 regenerate its tables and re-execute the report from a clean kernel.
 
 ---
 
 ## Reproducibility
 
-Every random draw descends from a fixed master seed through named, separate streams, so
-a report executed from a clean kernel reproduces every number it quotes exactly. Report
+Every random draw descends from a fixed seed declared in the project's own code, so a
+report executed from a clean kernel reproduces every number it quotes exactly. Report
 notebooks are generated by a `build_notebook.py` beside them and versioned **with**
 their outputs, because the prose quotes the values the code cells produce. The tests
-assert the properties a study's conclusions rest on, such as a quiet null and recovery
-that moves with the injected parameter, rather than exact decimals, so they survive a
-change of library version whose conclusion still holds.
+assert the properties a project's conclusions rest on, such as P01's quiet null and
+recovery that moves with the injected parameter, rather than exact decimals, so they
+survive a change of library version whose conclusion still holds.
 
 ---
 
@@ -87,16 +90,18 @@ change of library version whose conclusion still holds.
 - Code, documentation and commit messages in English.
 - A report's prose is edited in its `build_notebook.py`, never in the `.ipynb`, which is
   overwritten on every build.
-- Parameters and seeds live in `src/bfsim/config.py`, never inline in a report.
+- Parameters and seeds live in the project's own `src/` package, never inline in a report.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ---
 
 ## Roadmap
 
-- [x] Repository scaffold, simulator library and recovery tests
+- [x] Repository scaffold, one self-contained folder per project, and a template
 - [x] P01 — disposition effect and overprecision, eight scenarios
-- [ ] Further studies, as the course releases them
+- [ ] P02
+- [ ] P03
+- [ ] P04
 
 ---
 
