@@ -1,7 +1,7 @@
 # Pre-analysis statement
 
-Written and committed before any estimator was run against simulated output.
-Date: 2026-09-13.
+Written before any estimator was run against simulated output, and first
+committed together with the code. Date: 2026-09-13. The body below is unedited.
 
 We inject two parameters. The disposition strength `delta_i` enters as a multiplier on
 a daily sell hazard: a position trading above its purchase price has its immediate
