@@ -273,10 +273,7 @@ md(r"""
 
 ## 3. Results across the eight scenarios
 
-Each scenario regenerates the full population under its stated configuration. All eight share
-one price panel, because null recovery and monotonicity are comparisons *across* scenarios and
-redrawing the market for each would mix a behavioural difference with a different realised
-market; section 4 checks separately that the conclusions survive redrawing it.
+Each scenario regenerates the full population, while all eight share one price panel, because null recovery and monotonicity are comparisons *across* scenarios and a different market for each would mix the behavioural difference with a different realised market, a choice section 4 checks by redrawing the market eight times.
 """)
 
 code(r"""
@@ -298,28 +295,19 @@ code(r"""
 fx.pgr_plr_bars(table, f"{FIG}/pgr_plr.png"); plt.show()
 cost_rate = 2 * (CostConfig().commission_bps + CostConfig().half_spread_bps) * 1e-4
 fx.slopes(table, cost_rate, f"{FIG}/slopes.png"); plt.show()
-print(f"theoretical round-trip cost per unit of annual turnover: {cost_rate:.5f}")
+drag = pd.DataFrame({k: {"mean turnover": outputs[k].df.turnover.mean(),
+                         "mean cost drag, per year": outputs[k].df.cost_drag.mean()}
+                     for k in outputs}).T
+print(f"round-trip cost per unit of annual turnover: {cost_rate:.5f}")
+drag
 """)
 
 md(r"""
-**Reading the table.** The null is quiet, the disposition estimator is monotone in the
-injected $\delta$, and the two turnover-only scenarios leave it undisturbed at
-$+0.0001$ and $-0.0003$. On the overconfidence side, scenarios 4 and 5 reproduce Barber and
-Odean exactly: the gross slope is indistinguishable from zero at $-0.0018$ and $-0.0006$, and
-the net slope is negative at $-0.0078$ and $-0.0065$. Those net slopes are worth pausing on,
-because $-0.005$ is precisely the round-trip cost rate written into the cost model. The
-overconfidence regression is not measuring a behavioural parameter at all; it is recovering
-the commission and spread schedule, which is the strongest validation in the whole exercise
-and also the sharpest statement of what the test can and cannot claim.
+**Reading the table.** The null is quiet, the disposition estimator rises with the injected $\delta$, and the two overtrading scenarios leave it undisturbed at $+0.0001$ and $-0.0003$, while on the overconfidence side scenarios 4 and 5 reproduce the pattern Barber and Odean report, with a gross slope indistinguishable from zero ($-0.0018$ and $-0.0006$) and a negative net slope ($-0.0078$ and $-0.0065$). Both net slopes lie within one standard error of $-0.005$, which is the round-trip cost written into the model, so the regression is not measuring a behavioural parameter at all but recovering the commission and spread schedule, which is at once the strongest validation in the exercise and the clearest limit on what the test can claim.
 
-**The first pre-analysis prediction fails here.** We expected the net slope to become *more*
-negative from scenario 4 to scenario 5 as $\kappa$ rises. It does not, and it should not have
-been expected to: the slope is a cost per unit of turnover and the cost schedule is the same
-in both. What rises with $\kappa$ is the *level* of the drag, from 1.34 % a year in scenario 4
-to 2.53 % in scenario 5, and the dispersion of turnover across accounts. Monotonicity in
-$\kappa$ lives in the drag, not in the coefficient.
+This also explains why the net slope does not become more negative from scenario 4 to scenario 5, contrary to what we predicted, since the slope is a cost per unit of turnover and the cost schedule is identical in both, so what rises with $\kappa$ is the level of the drag, from 1.34 % of return a year in scenario 4 to 2.53 % in scenario 5, and not the coefficient.
 
-The three rows that matter are 6, 7 and 8, and they are taken up in section 5.
+The rows that deserve attention are 6, 7 and 8, taken up in section 5, and the positive gross slopes of scenarios 2, 3, 6 and 8, taken up in section 6.
 
 ---
 """)
@@ -330,34 +318,42 @@ md(r"""
 
 ## 4. Validation
 
-Four things have to hold before any of the above can be believed: the null has to come back
-empty, the recovered effect has to move monotonically with the injected parameter, each
-estimator has to stay quiet when only the other one's parameter is active, and no predictive
-information may have leaked from the price panel into the trading decision.
+Four things have to hold before the results can be believed, namely that the null comes back empty, that the recovered effect moves with the injected parameter, that each estimator stays quiet when only the other one's parameter is active, and that no information about future prices leaked into the trading decisions.
+
+**Leakage.** The test compares the return over the next 20 days of every stock an agent bought against the average stock on the same day, so a rule that systematically picked future winners or losers would show a non-zero difference. The first version of this test returned a $t$ of $-7.5$ in scenario 7, which would have meant a violation of the constraint, yet the cell below shows the panel itself carries no predictability and the fault lay in the test, because a thousand accounts buying the same stock on the same day is one purchase counted a thousand times. Keeping each (day, stock) pair once and computing the standard error from daily averages, so that purchases sharing the same market day are not treated as independent, brings every scenario inside $|t|\le 2.2$, which across eight tests is what the absence of leakage looks like.
 """)
 
 code(r"""
 placebo = placebo_table(outputs)
 placebo.to_csv("results/placebo.csv")
+
+# The first, naive version of the test: every account's purchase counted separately.
+run7, h = outputs[7].run, 20
+keep = run7.buy_days + h < universe.n_days
+d7, s7 = run7.buy_days[keep], run7.buy_secs[keep]
+fwd = universe.prices[d7 + h, s7] / universe.prices[d7, s7] - 1
+bench = (universe.prices[h:] / universe.prices[:-h] - 1)[d7].mean(axis=1)
+excess = fwd - bench
+print(f"naive placebo, scenario 7: n = {excess.size:,}   "
+      f"t = {excess.mean() / (excess.std(ddof=1) / np.sqrt(excess.size)):+.2f}")
+
+# Does the price panel itself contain short-horizon reversal?  It should not.
+P = universe.prices
+past = P[h:-h] / P[:-2*h] - 1;  past -= past.mean(axis=1, keepdims=True)
+nxt = P[2*h:] / P[h:-h] - 1;    nxt -= nxt.mean(axis=1, keepdims=True)
+losers = np.take_along_axis(nxt, np.argsort(past, axis=1)[:, :12], axis=1).mean(axis=1)
+print(f"panel check: mean corr(past 20d, next 20d) = "
+      f"{np.mean([np.corrcoef(a, b)[0, 1] for a, b in zip(past, nxt)]):+.4f}   "
+      f"bottom-quintile forward excess t = {losers.mean() / (losers.std(ddof=1) / np.sqrt(losers.size)):+.2f}")
 placebo
 """)
 
 md(r"""
-**The leakage placebo, and how it lied to us first.** The test compares the forward 20-day
-return of every security an agent bought against the same-day equal-weighted universe, so a
-rule that systematically acquires future outperformance shows up as a non-zero difference. Run
-naively it returned $t=-7.5$ in scenario 7, which would have been a violation of the big
-constraint. It was not. A thousand accounts buying the same security on the same day is one
-purchase decision observed a thousand times, and purchases made on the same day share a market
-shock; de-duplicating $(\text{day},\text{security})$ pairs and clustering by day takes the same
-statistic to $t=+0.06$. The panel itself carries no reversal — the cross-sectional correlation
-between a security's past 20-day return and its next 20-day return is $+0.023$, with a
-day-clustered $t$ of 0.12 on the bottom-quintile forward excess. Every scenario now sits inside
-$|t|\le 2.2$, which for eight tests is what independence looks like.
+**Null recovery.** Within the shared price panel the null returns $\widehat{PGR}-\widehat{PLR} = 0.00085$ with a standard error of 0.00044, a $t$ of 1.95 that sits on the edge of significance for an effect that is zero by construction, whereas across eight independently redrawn markets the mean is 0.00022 with a standard deviation of 0.00050, a $t$ of 1.2, so the null is genuinely quiet and what misleads is the single-panel $t$. The reason is that every account in the sample lives through the same market, and resampling accounts, which correctly handles the dependence *within* an account, still treats a shared market shock as independent information across accounts, so a disposition ratio of 1.02 with a $t$ of 2 measured on one brokerage dataset is not evidence of anything, and finding this out requires redrawing the market, which a researcher with a single real dataset cannot do.
 
-The episode is worth recording rather than quietly fixing, because it is the exact failure the
-assignment describes in the disposition estimator, appearing in the diagnostic instead: an
-observation count inflated by repetition turns economic noise into a decisive $t$-statistic.
+**Monotonicity.** The recovered difference rises from 0.00085 to 0.0266 to 0.0749 as $\delta$ goes from 0 to 0.3 to 0.8, and the ratio from 1.02 to 1.74 to 7.39, with the scenario 3 ratio stable at $7.34\pm0.38$ across the eight redrawn markets, and the recovery is monotone without being proportional because $\delta$ multiplies a daily probability while the ratio measures what that multiplier does to a proportion once holding periods and price paths intervene.
+
+**Cross-estimator quiet holds in one direction only.** The disposition estimator stays silent in the two overtrading scenarios, at $t = 0.33$ and $t = -1.24$, but the overconfidence estimator does not stay silent in the two disposition scenarios, returning gross slopes of $+0.063$ and $+0.151$ with $t$ of 4.2 and 11.2 in populations with no overprecision whatsoever, so the disposition mechanism contaminates the overconfidence estimator while the reverse does not happen, a failed check that section 6 traces to reverse causality.
 """)
 
 code(r"""
@@ -370,48 +366,33 @@ for i in (0, 2, 6):
     reps[cfg.index].to_csv(f"results/replication_s{cfg.index}.csv")
 
 summary = pd.DataFrame({
-    f"S{k}": r[["PGR-PLR", "se_diff", "ratio", "beta_gross"]].agg(["mean", "std", "min", "max"]).stack()
+    f"Scenario {k}": r[["PGR-PLR", "ratio", "beta_gross"]].agg(["mean", "std", "min", "max"]).stack()
     for k, r in reps.items()})
 summary
 """)
 
-md(r"""
-**Null recovery.** Within the shared price panel the null returns
-$\widehat{PGR}-\widehat{PLR} = 0.00085$ with an account-clustered standard error of 0.00044,
-which is a $t$ of 1.95 — a marginal rejection of a hypothesis that is true by construction.
-Across eight independently redrawn panels the mean is 0.00022 with a standard deviation of
-0.00050, and over a longer sixteen-panel run the mean was 0.000125 with $t=1.32$ and nine of
-sixteen draws positive. The null is genuinely quiet; what is not quiet is the single-panel
-$t$-statistic.
-
-That gap is the finding, and it generalises directly to real data. Every account in the sample
-is exposed to the same market path, so the account bootstrap — which is already the correct
-level of clustering for the dependence *within* an account — still treats a common price shock
-as independent information across accounts. A disposition ratio of 1.02 measured on one
-brokerage panel with a $t$ of 2 is not evidence of anything, and the only way to find that out
-is to redraw the market, which is exactly what a researcher with a single real dataset cannot
-do.
-
-**Monotonicity.** The recovered difference rises from 0.00085 to 0.0266 to 0.0749 as $\delta$
-goes from 0 to 0.3 to 0.8, and the ratio from 1.02 to 1.74 to 7.39, with the scenario-3 ratio
-stable at $7.34\pm0.38$ across eight redrawn panels. Recovery is monotone but not
-proportional, and it should not be: the injected $\delta$ is a multiplier on a hazard, while
-the ratio is what that multiplier does to a proportion after a holding-period distribution and
-a price path have intervened.
-
-**Cross-estimator quiet holds in one direction only, and the failure is informative.** In the
-two turnover-only scenarios the disposition estimator is silent, at $t = 0.33$ and $t=-1.24$.
-In the two disposition-only scenarios the overconfidence estimator is not silent at all: it
-returns gross slopes of $+0.063$ and $+0.151$ with $t$ of 4.2 and 11.2, on populations in which
-no overprecision whatever was injected and $\kappa$ is identically zero. This is not a defect
-in the simulator but the reverse-causality channel taken apart in section 6, and it is worth
-stating plainly as a failed validation check rather than folding it into the diagnosis: the
-disposition mechanism contaminates the overconfidence estimator, while the reverse does not
-happen.
-""")
-
 code(r"""
 fx.monotonicity(table, f"{FIG}/monotonicity.png"); plt.show()
+""")
+
+md(r"""
+**How the pre-registered predictions fared.** Most of the predictions held, three failed in whole or in part, and one outcome was not predicted at all.
+
+| Prediction in section 1 | Outcome | Verdict |
+|---|---|---|
+| Scenario 1 quiet on both estimators | Difference 0.00085 ($t$ = 1.95 in one market, 1.2 across eight) and gross slope $t$ = 0.08 | Held |
+| Scenarios 2 and 3 positive, larger in 3, monotone but not equal to $\delta$ | 0.0266 and 0.0749, ratios 1.74 and 7.39 | Held |
+| Scenarios 4 and 5 quiet on disposition, gross slope near zero, net slope negative | Disposition $t$ of 0.33 and $-1.24$, gross slope $t$ of $-0.53$ and $-0.16$, net slope $-0.0078$ and $-0.0065$ | Held |
+| Net slope *more negative* in 5 than in 4 | $-0.0065$ against $-0.0078$, since the slope is a cost rate | **Failed** |
+| Scenario 6 ratio attenuated relative to scenario 3 | 6.67 against 7.39, although the difference rose | Held |
+| Scenarios 7 and 8 positive and significant with $\delta = 0$ | $t$ of 70 and 38 | Held |
+| Reverse causality makes the gross slope positive in scenarios 2, 3, 6 and 7 | Positive and significant in 2, 3 and 6, while in 7 it is $t$ = 0.89 in the shared market yet positive in all eight redrawn ones | Partly failed |
+| No cash drag and no spread in the gross measure | Gross slope $t$ of $-0.53$ and $-0.16$ in scenarios 4 and 5 | Held |
+| $\mathrm{corr}(\delta,\kappa)$ near zero | $-0.040$ against a standard error of 0.032 | Held |
+| $\mathrm{corr}(\delta,\text{turnover})$ materially negative | $+0.136$ in scenario 2, $-0.112$ in 3 and $-0.617$ in 6 | **Failed** at low $\delta$ |
+| *Not predicted* | Scenario 8 also produces a positive gross slope, $+0.064$ with $t$ = 4.4 | New |
+
+---
 """)
 
 # =========================================================================== 5
