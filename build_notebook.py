@@ -99,41 +99,10 @@ md(r"""
 
 ## 1. Pre-analysis statement
 
-*Written and committed before any estimator was run against simulated output. The
-version-controlled copy is `PRE_ANALYSIS.md`.*
-
-We inject two parameters. The disposition strength $\delta_i$ enters as a multiplier on a
-daily sell hazard, so that a position trading above its purchase price has its immediate
-probability of sale scaled by $(1+\delta_i)$ and one below its purchase price by
-$(1-\delta_i)$. The overprecision parameter $\kappa_i$ enters the same hazard as a level
-shift, $h_0(1+4\kappa_i)$, so it governs how often an account acts at all without touching
-which domain it closes. Neither PGR, PLR nor turnover is parametrised anywhere in the code;
-all three are emergent. Per scenario, the tabulated $\delta$ and $\kappa$ are the means of
-independent Beta draws across the population, degenerate at zero where the scenario
-specifies zero.
-
-We expect the following. In scenario 1 both estimators should be quiet. In scenarios 2 and 3
-we expect $\widehat{PGR}-\widehat{PLR}$ to be positive and larger in 3 than in 2, monotone in
-the injected $\delta$ but not equal to it, since the hazard multiplier and the realised ratio
-are different quantities. In scenarios 4 and 5 we expect the disposition estimator to stay
-quiet while the turnover slope on net returns turns negative and more negative as $\kappa$
-rises, with the gross slope close to zero. Scenario 6 should show both, and we expect the
-measured disposition ratio to be **attenuated** relative to scenario 3 because higher churn
-shortens holding periods and moves positions closer to their purchase price. Scenarios 7 and
-8 carry $\delta=0$ and we nonetheless expect a positive, significant $\widehat{PGR}-\widehat{PLR}$
-in both. On the overconfidence side we expect the Barber–Odean contrast only where $\kappa$
-carries the variation, and wherever the selling rule conditions on the purchase price
-(scenarios 2, 3, 6) or trims winners (scenario 7) we expect reverse causality to push the
-**gross** slope positive. Cash drag is eliminated by construction through same-day
-redeployment and the bid–ask spread is excluded from the gross measure by definition, so
-neither should appear unless deliberately switched on. Finally we expect
-$\mathrm{corr}(\delta_i,\kappa_i)$ to be within Monte Carlo noise of zero, and
-$\mathrm{corr}(\delta_i,\text{turnover}_i)$ to be materially negative.
-
-Two of these predictions turn out to be wrong, and they are flagged where they fail.
-
----
+The assignment asks for one paragraph, written before any estimator is run, that states the parameters to be injected and what each estimator should recover. Ours was written on 13 September 2026 before the first estimator was run, and it is reproduced below exactly as it stands in `PRE_ANALYSIS.md` so that it cannot be adjusted after the fact, while how each prediction fared is scored at the end of section 4.
 """)
+
+md(PRE_QUOTED)
 
 code(r"""
 import os, sys, pathlib, warnings
@@ -152,11 +121,8 @@ import matplotlib.pyplot as plt
 from dataclasses import replace
 
 from bfsim.config import (MASTER_SEED, PriceConfig, PopulationConfig, CostConfig,
-                          EngineConfig, ScenarioConfig, stream_rngs)
+                          EngineConfig, stream_rngs)
 from bfsim.agents import draw_population
-from bfsim.prices import simulate_universe
-from bfsim.engine import run_scenario
-from bfsim.estimators import pgr_plr, bootstrap_accounts, turnover_regression, CONTROLS
 from bfsim import figures as fx
 from bfsim.scenarios import (SCENARIOS, common_universe, analyse, run_all, results_table,
                              independence_table, convention_table, placebo_table,
@@ -180,33 +146,15 @@ md(r"""
 
 ### 2.1 The security universe
 
-Sixty securities are simulated over 750 trading days from a three-factor structure, in which
-the daily log return of security $j$ is
+Sixty stocks are simulated over 750 trading days, roughly three years, and instead of moving independently they share common drivers the way real stocks do, since each daily log return is built as
 
 $$r_{j,t} \;=\; a_j \;+\; \beta^{M}_j f^{M}_t \;+\; \beta^{V}_j f^{V}_t \;+\; \beta^{S}_j f^{S}_t \;+\; \varepsilon_{j,t},$$
 
-with one market factor carrying an annualised volatility of 16 % and two orthogonal style
-factors at 10 %, market betas drawn as $N(1,\,0.35)$ and clipped to $[0.2,\,2.0]$, style betas
-drawn as $N(0,\,0.5)$, and idiosyncratic volatility drawn uniformly between 20 % and 45 % a
-year. A factor structure rather than sixty independent geometric Brownian motions matters for
-two reasons: it produces the pairwise return correlation of roughly 0.18 that any real
-cross-section displays, and it gives the overconfidence regression a risk control with actual
-content, since portfolio beta then varies across accounts for reasons unrelated to how often
-the account trades.
+where $f^M$ is a market factor with 16 % annual volatility, $f^V$ and $f^S$ are two independent style factors with 10 % each, the betas measure how strongly stock $j$ responds to each factor (market betas are drawn around 1 and clipped to $[0.2,\,2.0]$), and $\varepsilon_{j,t}$ is the stock's own noise with an annual volatility between 20 % and 45 %. This factor structure matters for two reasons, because it reproduces the average pairwise correlation of about 0.19 that a real cross-section of stocks shows, and because it gives the overconfidence regression a meaningful risk control, since each portfolio's market beta then varies for reasons unrelated to how often its owner trades.
 
-The intercept deserves a word, because we changed it during construction. Under a CAPM-like
-drift, $a_j = \mu_j - \tfrac12\sigma_j^2$ with $\mu_j = r_f + \beta_j^M\,\text{ERP}$, the
-expected **log** return varies across securities with a standard deviation of about three
-percentage points a year and correlates $-0.90$ with idiosyncratic volatility. Any rule that
-selects on past returns then acquires a drift differential it had no information about, which
-is observationally identical to leakage. We therefore impose a common expected log return of
-6 % a year on every security. Expected *arithmetic* returns still differ by half the variance,
-but that is a Jensen artefact and cannot make a portfolio compound faster.
+The intercept $a_j$ was changed during construction, and the reason is worth recording because it looked exactly like a violation of the assignment's central constraint. With a CAPM-style drift, in which riskier stocks earn more on average, the expected *log* return still falls with volatility, so across our sixty stocks it varied with a standard deviation of 3.0 percentage points a year and a correlation of $-0.90$ with idiosyncratic volatility, which means that any rule selecting stocks on their past performance acquires a drift advantage or disadvantage it never had information about. We therefore impose the same expected log return of 6 % a year on every stock, which leaves the arithmetic means differing only by half the variance, an effect that cannot make a portfolio compound faster.
 
-**The big constraint holds by construction.** The entire price panel is drawn from its own
-generator before a single agent exists, and the engine only ever reads from it; there is no
-code path by which a trading decision can reach the return that follows it. Section 4 tests
-the claim empirically anyway.
+**The big constraint holds by construction**, because the entire price panel is drawn from its own random stream before a single trader exists and the trading engine only ever reads it, so no trading decision can reach the return that follows it, and section 4 tests the claim empirically in any case.
 """)
 
 code(r"""
@@ -216,26 +164,32 @@ universe = common_universe(price_cfg)
 r = np.diff(np.log(universe.prices), axis=0)
 corr = np.corrcoef(r.T)
 iu = np.triu_indices_from(corr, 1)
-print(f"securities {universe.n_securities}   trading days {universe.n_days}")
+print(f"stocks {universe.n_securities}   trading days {universe.n_days}")
 print(f"annualised volatility   mean {r.std(0).mean()*np.sqrt(252):.3f}   "
       f"range [{r.std(0).min()*np.sqrt(252):.3f}, {r.std(0).max()*np.sqrt(252):.3f}]")
 print(f"mean pairwise return correlation   {corr[iu].mean():.4f}")
-print(f"market beta   mean {universe.beta_market.mean():.3f}   "
-      f"sd {universe.beta_market.std():.3f}")
-print(f"expected log drift, imposed on every security   "
-      f"{price_cfg.common_log_drift_annual:.3f} per year")
+print(f"market beta   mean {universe.beta_market.mean():.3f}   sd {universe.beta_market.std():.3f}")
+
+# What the rejected CAPM-style drift would have implied for expected log returns
+total_var = ((universe.beta_market * price_cfg.market_vol_annual) ** 2
+             + (universe.beta_style ** 2).sum(1) * price_cfg.style_vol_annual ** 2
+             + universe.idio_vol ** 2)
+capm_log_drift = (price_cfg.risk_free_annual
+                  + universe.beta_market * price_cfg.market_premium_annual - 0.5 * total_var)
+print(f"CAPM-style drift, rejected:  sd of expected log return {capm_log_drift.std():.4f}   "
+      f"corr with idiosyncratic vol {np.corrcoef(capm_log_drift, universe.idio_vol)[0,1]:+.3f}")
+print(f"drift used instead: {price_cfg.common_log_drift_annual:.3f} per year on every stock")
 
 fig, ax = plt.subplots(1, 2, figsize=(11, 3.6))
-sub = np.linspace(0, universe.n_securities - 1, 12).astype(int)
-for j in sub:
-    ax[0].plot(universe.prices[:, j] / universe.prices[0, j], lw=0.9,
-               color=fx.ANCHOR, alpha=0.55)
-ax[0].plot((universe.prices / universe.prices[0]).mean(axis=1), lw=2.0, color=fx.GOLD)
-ax[0].set_title("Twelve of the sixty paths, and the universe mean in gold")
+for j in np.linspace(0, universe.n_securities - 1, 12).astype(int):
+    ax[0].plot(universe.prices[:, j] / universe.prices[0, j], lw=0.9, color=fx.BLUE, alpha=0.5)
+ax[0].plot((universe.prices / universe.prices[0]).mean(axis=1), lw=2.2, color=fx.DARK,
+           label="universe mean")
+ax[0].set_title("Twelve of the sixty price paths"); ax[0].legend(fontsize=8.5)
 ax[0].set_xlabel("trading day"); ax[0].set_ylabel("price, indexed to 1")
-ax[1].hist(corr[iu], bins=40, color=fx.ACCENT)
-ax[1].axvline(corr[iu].mean(), color=fx.GOLD, lw=1.6)
-ax[1].set_title("Pairwise daily return correlations")
+ax[1].hist(corr[iu], bins=40, color=fx.GOLD, edgecolor="white", linewidth=0.4)
+ax[1].axvline(corr[iu].mean(), color=fx.DARK, lw=1.6, ls="--", label="mean")
+ax[1].set_title("Pairwise daily return correlations"); ax[1].legend(fontsize=8.5)
 ax[1].set_xlabel("correlation")
 plt.tight_layout(); plt.savefig(f"{FIG}/universe.png", dpi=160, bbox_inches="tight"); plt.show()
 """)
@@ -245,31 +199,15 @@ md(r"""
 
 ### 2.2 Traders and the injected mechanism
 
-Each scenario regenerates a population of $N=1000$ accounts. Every account receives a
-disposition strength $\delta_i$, an overprecision intensity $\kappa_i$, starting capital
-$W_i$ drawn log-uniformly between \$10,000 and \$500,000, and a target number of positions
-$n_i$ drawn uniformly on $\{5,\dots,30\}$. The log-uniform capital draw is deliberate, since a
-uniform draw would put half the population above \$255,000 and no brokerage cross-section
-looks like that.
+Each scenario generates a fresh population of $N=1000$ accounts, and each account receives a disposition strength $\delta_i$, an overprecision intensity $\kappa_i$, a starting capital $W_i$ between \$10,000 and \$500,000 drawn so that small accounts are more common than large ones, and a target number of positions $n_i$ between 5 and 30.
 
-We read the scenario table's $\delta$ and $\kappa$ as **population means rather than
-constants**, drawing each from a Beta distribution with that mean and a concentration of six.
-Without cross-sectional dispersion the independence diagnostics of section 7 would have
-nothing to correlate — one cannot report $\mathrm{corr}(\delta_i,\kappa_i)$ over a constant —
-and the turnover regression would lose most of its identification. The two are drawn from
-separate generator streams spawned off a single master seed, so independence is a property of
-the construction and not of an inspection after the fact.
+We read the $\delta$ and $\kappa$ of the scenario table as the *average* of the population rather than as a value every trader shares, drawing each trader's parameter from a Beta distribution with that mean, because without differences across traders there would be nothing to correlate in section 7 and the turnover regression would have almost no variation to work with. The two are drawn from separate random streams, so their independence follows from the construction rather than from checking it afterwards.
 
-The injected mechanism is a daily hazard of closing each held position,
+The behaviour is written into a single daily probability of selling each position the trader holds,
 
-$$h_{i,j,t} \;=\; \underbrace{h_0\,\bigl(1 + 4\kappa_i\bigr)}_{\text{how often the account acts}} \;\times\; \underbrace{\begin{cases} 1+\delta_i & P_t > \text{basis} \\ 1 & P_t = \text{basis} \\ 1-\delta_i & P_t < \text{basis}\end{cases}}_{\text{which domain it closes}}$$
+$$h_{i,j,t} \;=\; \underbrace{h_0\,\bigl(1 + 4\kappa_i\bigr)}_{\text{how often the trader acts}} \;\times\; \underbrace{\begin{cases} 1+\delta_i & \text{price above basis} \\ 1 & \text{price equal to basis} \\ 1-\delta_i & \text{price below basis}\end{cases}}_{\text{which positions it closes}}$$
 
-with $h_0 = 0.004$, which corresponds to an unbiased account turning its portfolio over
-roughly once a year. Nothing in this expression is PGR. The quantity the estimator reports
-sits one level above the quantity we inject, and the gap between them is the entire point:
-$\widehat{PGR}$ is a consequence of the hazard, the holding-period distribution the hazard
-induces, and the price path the positions happen to follow. Proceeds are redeployed the same
-day into a security chosen uniformly at random, independently of its past and its future.
+with $h_0 = 0.004$, which makes an unbiased trader replace their portfolio about once a year, while $\kappa$ raises that frequency and $\delta$ tilts the selling toward winners. Nothing in this expression is PGR, which is the point the assignment insists on, since the estimator reads a quantity one level above the one we inject and the gap between them depends on how long positions are held and on the price path they follow, while the money from every sale is reinvested the same day in a stock chosen at random, independently of its past and its future.
 """)
 
 code(r"""
@@ -278,21 +216,21 @@ demo = draw_population(PopulationConfig(n_traders=4000, delta_mean=0.8, kappa_me
 print(f"delta   mean {demo.delta.mean():.3f}  sd {demo.delta.std():.3f}")
 print(f"kappa   mean {demo.kappa.mean():.3f}  sd {demo.kappa.std():.3f}")
 print(f"realised corr(delta, kappa) = {np.corrcoef(demo.delta, demo.kappa)[0,1]:+.4f}  "
-      f"(null s.e. {1/np.sqrt(demo.n_traders-3):.4f})")
+      f"(standard error under independence {1/np.sqrt(demo.n_traders-3):.4f})")
 print(f"capital  median ${np.median(demo.wealth):,.0f}   positions  mean {demo.n_pos.mean():.1f}")
 
 eng = EngineConfig()
 d = np.linspace(0, 1, 100)
 fig, ax = plt.subplots(1, 2, figsize=(10, 3.4))
-ax[0].plot(d, eng.base_hazard*(1+d), color=fx.ANCHOR, lw=2, label="above purchase price")
-ax[0].plot(d, eng.base_hazard*(1-d), color=fx.ACCENT, lw=2, label="below purchase price")
-ax[0].axhline(eng.base_hazard, color=fx.GOLD, ls="--", lw=1.2, label=r"$h_0$")
-ax[0].set_xlabel(r"$\delta_i$"); ax[0].set_ylabel("daily sell hazard")
-ax[0].set_title(r"$\delta$ tilts the hazard by domain"); ax[0].legend(frameon=False, fontsize=8)
+ax[0].plot(d, eng.base_hazard*(1+d), color=fx.GOLD, lw=2.2, label="price above basis")
+ax[0].plot(d, eng.base_hazard*(1-d), color=fx.BLUE, lw=2.2, label="price below basis")
+ax[0].axhline(eng.base_hazard, color=fx.DARK, ls="--", lw=1.1, label=r"$h_0$")
+ax[0].set_xlabel(r"$\delta_i$"); ax[0].set_ylabel("daily probability of selling")
+ax[0].set_title(r"$\delta$ tilts selling toward winners"); ax[0].legend(fontsize=8)
 k = np.linspace(0, 1, 100)
-ax[1].plot(k, eng.base_hazard*(1+eng.kappa_multiplier*k)*252, color=fx.ANCHOR, lw=2)
+ax[1].plot(k, eng.base_hazard*(1+eng.kappa_multiplier*k)*252, color=fx.BLUE, lw=2.2)
 ax[1].set_xlabel(r"$\kappa_i$"); ax[1].set_ylabel("expected sales per position-year")
-ax[1].set_title(r"$\kappa$ sets the level")
+ax[1].set_title(r"$\kappa$ sets how often the trader acts")
 plt.tight_layout(); plt.savefig(f"{FIG}/mechanism.png", dpi=160, bbox_inches="tight"); plt.show()
 """)
 
@@ -301,20 +239,9 @@ md(r"""
 
 ### 2.3 Trading costs, and what "gross" means here
 
-Every transaction pays a commission of 10 basis points of notional with a floor of one US
-dollar, and crosses a quoted spread of 30 basis points, so fills occur at the mid plus or
-minus 15 basis points. A full round trip of the portfolio therefore costs
-$2\times(10+15)=50$ basis points, which is the number to hold on to when reading the
-overconfidence slope in section 3.
+Every trade pays a commission of 10 basis points of its value with a minimum of one dollar, and crosses a bid-ask spread of 30 basis points, so buyers pay 15 basis points above the mid price and sellers receive 15 below it, which makes a full round trip of the portfolio cost $2\times(10+15)=50$ basis points, the number to keep in mind when reading the overconfidence slope in section 3.
 
-The gross and net measures are deliberately defined so that one of the four diagnoses the
-assignment warns about cannot occur. Each account runs a shadow portfolio that takes exactly
-the same decisions — same securities, same fractions sold, same days — but fills at the mid
-and pays no commission. **Gross return is that shadow portfolio's return; net return is the
-real one.** Gross is therefore not "the return before we subtracted costs at the end", which
-would still have the spread baked into the price path; it is the counterfactual return of
-identical behaviour in a frictionless market. Whenever the two diverge, the divergence is
-costs and nothing else.
+Each account also runs a *shadow portfolio* that copies its decisions exactly, buying and selling the same stocks on the same days, but trades at the mid price and pays no commission, and **gross return is the return of that shadow portfolio while net return is the return of the real one**. This definition removes by construction one of the problems the assignment warns about, since a gross return computed by adding costs back at the end would still carry the half-spread inside the purchase and sale prices, whereas the shadow portfolio never paid it, so any gap between gross and net is trading cost and nothing else.
 """)
 
 md(r"""
@@ -322,39 +249,20 @@ md(r"""
 
 ### 2.4 Estimator conventions
 
-The disposition estimator accumulates four counts. On every day an account sells something,
-each position it holds that day is classified against its purchase price, and
+The disposition estimator counts, on every day an account sells something, how many of the positions it holds are gains sold ($G_r$), gains kept ($G_p$), losses sold ($L_r$) and losses kept ($L_p$), and pools the four counts across all accounts and days,
 
 $$\widehat{PGR} = \frac{G_r}{G_r+G_p}, \qquad \widehat{PLR} = \frac{L_r}{L_r+L_p}.$$
 
-Four conventions decide what those counts mean, and each of them changes the answer:
+Four choices decide what those counts mean, and because each one changes the answer we compute the alternative alongside our choice, with the magnitudes reported in section 5.
 
-**Silent days.** Days on which the account sold nothing contribute nothing to any count. This
-is not innocuous. The same simulation counted on every day rather than on sale days gives a
-difference of 0.0064 in scenario 3 instead of 0.0749, because the conditioning inflates both
-realisation rates by roughly the reciprocal of the frequency of sale days. The *ratio* is far
-more stable than the difference under this convention, which is the first reason to report
-both.
+| Question | Our choice | Alternative also computed | Where it matters |
+|---|---|---|---|
+| Do days without a sale count? | No, only sale days contribute | Every day counts | Everywhere, since the difference shrinks by a factor of 4 to 12 when silent days are included |
+| Is selling half a position one sale or half a sale? | One sale, and the remaining half is classified again the next day | Weighted by the fraction sold | Only in scenario 7, the only one that sells partial positions |
+| Which purchase price? | Each purchase is its own lot | Average cost across lots of the same stock | Attenuates the estimate by about 8 % where the effect is large |
+| A position exactly at its purchase price? | Counted as neither gain nor loss | Not needed | Never observed, since prices are continuous |
 
-**Partial sales.** A sale is counted at position level, so trimming a quarter of a lot is one
-realisation and the surviving stub is classified again the following day. The share-weighted
-alternative, in which a quarter-sale contributes 0.25 to $G_r$ and 0.75 to $G_p$, is computed
-in parallel. The two agree exactly in every scenario where positions are closed whole, and
-differ by a factor of 4.4 in the one scenario that trims — which is section 5's main
-diagnostic.
-
-**Cost basis.** The default is per-lot: each purchase creates a lot and a full sale destroys
-it. Average cost across all lots of the same security within an account is accumulated on the
-same pass, and attenuates the estimate by about 8 % wherever the effect is large, because
-blending a new purchase into an old lot pulls the reference point toward the current price and
-reclassifies some extreme positions.
-
-**Positions exactly at the purchase price.** They enter no count. With continuous prices this
-is a measure-zero event and the realised number of such observations is zero in all eight
-scenarios, which the results table reports so that the reader need not take it on faith.
-
-Standard errors come from a bootstrap that resamples **accounts**, not transactions. The naive
-position-day bootstrap is computed alongside purely to show how badly it misleads.
+Standard errors come from a bootstrap that resamples whole **accounts**, since the positions of one account share that account's behaviour and are therefore not independent observations, and the naive version that resamples individual positions is computed only to show by how much it understates the uncertainty.
 
 ---
 """)
