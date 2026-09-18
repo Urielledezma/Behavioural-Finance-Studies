@@ -448,24 +448,9 @@ md(r"""
 
 ## 6. Diagnosing the turnover slope on gross returns
 
-The assignment asks which of four causes is responsible for a negative slope of gross returns
-on turnover. **We never observe one.** The gross slope is quiet in every scenario where
-$\kappa$ carries the variation — $-0.0018$ with $t=-0.53$ in scenario 4 and $-0.0006$ with
-$t=-0.16$ in scenario 5 — and it is strongly *positive* in scenarios 2, 3, 6 and 8. The
-diagnosis therefore runs in two parts: why nothing negative appears, and what the positive
-slope is.
+The assignment lists four legitimate reasons why gross returns could fall with turnover, plus reverse causality, which pushes the slope up instead, and asks which one is present. **No negative gross slope appears in any scenario**, since it is $-0.0018$ ($t = -0.53$) and $-0.0006$ ($t = -0.16$) where $\kappa$ drives turnover, while it is strongly *positive* in scenarios 2, 3, 6 and 8, so the diagnosis has two parts, why nothing negative appears and what the positive slope is.
 
-**Why nothing negative appears.** Leakage is excluded by the placebo of section 4, with every
-scenario inside $|t|\le2.2$ on de-duplicated, day-clustered purchases. The spread is excluded
-by definition, since gross return is a shadow portfolio filled at the mid rather than an
-after-the-fact subtraction from a price path that already contains the spread. Cash drag is
-excluded by construction, because proceeds are redeployed on the day of sale. The fourth cause,
-compounding path effects, is present but small here: in scenario 5 the correlation between
-turnover and gross return is $-0.020$, because redeployment is instantaneous and into an
-equally random security, so turnover changes little about the portfolio's geometric return.
-
-Cash drag is worth switching on rather than merely asserting away, so we re-run scenario 5 with
-settlement lags of one, three and five days.
+Leakage is excluded by the placebo of section 4, and the spread is excluded by the shadow-portfolio definition of section 2.3, while cash drag is excluded because proceeds are reinvested the same day, and compounding effects cannot be detected here, since in scenario 5 the correlation between turnover and gross return is $-0.020$ against a standard error of 0.032. Rather than only argue that cash drag is absent, we switch it on by making sale proceeds wait one, three or five days before they can be reinvested.
 """)
 
 code(r"""
@@ -479,33 +464,17 @@ for lag in (0, 1, 3, 5):
                  "beta_net": o.over["ret_net"]["beta"], "t_net": o.over["ret_net"]["t"],
                  "mean gross return": o.df.ret_gross.mean(),
                  "mean turnover": o.df.turnover.mean()})
-drag = pd.DataFrame(rows).set_index("settlement lag")
-drag.to_csv("results/cash_drag.csv")
-fx.cash_drag(drag.index.tolist(), drag["beta_gross"], drag["beta_net"], f"{FIG}/cash_drag.png")
+lagged = pd.DataFrame(rows).set_index("settlement lag")
+lagged.to_csv("results/cash_drag.csv")
+fx.cash_drag(lagged.index.tolist(), lagged["beta_gross"], lagged["beta_net"], f"{FIG}/cash_drag.png")
 plt.show()
-drag
+lagged
 """)
 
 md(r"""
-One idle day between sale and redeployment takes the gross slope from $-0.0006$ ($t=-0.16$) to
-$-0.0220$ ($t=-4.77$), and drives the population's mean gross return from 18.6 % to 16.2 % and
-on to 13.1 % at a five-day lag. The mechanism needs no informed trading whatever: a
-high-turnover account simply spends more of its life out of a market that drifts upward. This
-is the scenario in which a researcher would wrongly conclude that frequent traders pick bad
-securities, and the tell is that the damage scales with time spent in cash rather than with
-anything about the securities bought — which the placebo would confirm by staying silent.
+A single idle day between sale and reinvestment takes the gross slope from $-0.0006$ ($t = -0.16$) to $-0.0220$ ($t = -4.77$) and lowers the population's mean gross return from 18.6 % to 16.2 %, falling to 13.1 % with a five-day wait, without any informed trading, because a frequent trader simply spends more time out of a market that rises on average. This is the case in which a researcher would wrongly conclude that frequent traders pick bad stocks, and what distinguishes it is that the damage grows with the time spent in cash rather than with anything about the stocks bought, which the placebo would confirm by staying silent.
 
-**What the positive slope is.** In scenarios 2, 3, 6 and 8 the gross slope is positive and
-significant, reaching $+0.151$ with $t=11.2$ in scenario 3. This is reverse causality, and the
-simulator lets us prove it rather than argue it. The injected parameter $\delta$ is
-uncorrelated with gross return at $-0.026$, so disposition strength does not cause performance.
-Yet realised turnover correlates $+0.397$ with gross return in the same scenario. Turnover is
-therefore partly an *outcome* of the return: an account whose securities happened to rise is
-holding more winners, and a rule that sells winners at $(1+\delta)$ and holds losers at
-$(1-\delta)$ converts that luck into trades. The regression reads the arrow backwards.
-
-Where $\kappa$ provides genuine exogenous variation we can go further and replace the outcome
-with its cause.
+**The positive slope is reverse causality**, and the simulation lets us show it rather than argue it, since in scenario 3 the injected $\delta$ is essentially uncorrelated with gross return ($-0.026$) while realised turnover correlates $+0.397$ with it, so turnover is partly a *consequence* of the return, because an account whose stocks happened to rise holds more winners and a rule that sells winners faster turns that luck into trades, which makes the regression of return on turnover read the arrow backwards. Where $\kappa$ varies across traders we can go one step further and replace realised turnover, which is an outcome, by $\kappa$, which is its cause and cannot be affected by returns, the same logic an instrumental variable exploits.
 """)
 
 code(r"""
@@ -521,15 +490,7 @@ inst
 """)
 
 md(r"""
-In scenario 5, where the selling rule never looks at the purchase price, regressing on the
-injected $\kappa$ instead of on realised turnover gives $+0.009$ on gross and $-0.015$ on net —
-the Barber–Odean contrast in its clean form, with the cost effect intact and no endogeneity. In
-scenario 6, where both parameters are active, the same substitution flips the gross coefficient
-from $+0.028$ to $+0.008$ and turns the net coefficient from $+0.022$ to $-0.009$. The sign of
-the net slope, which is the entire behavioural claim, reverses depending on whether the
-right-hand side holds an outcome or a cause. In scenarios 2, 3, 7 and 8 no such substitution is
-available because $\kappa$ is degenerate, which is precisely the situation a researcher with
-real data is always in.
+In scenario 5, where selling never looks at the purchase price, the regression on $\kappa$ gives $+0.009$ on gross returns and $-0.015$ on net returns, the Barber-Odean contrast in its clean form, while in scenario 6, where both parameters are active, the same substitution takes the gross coefficient from $+0.028$ to $+0.008$ and the net coefficient from $+0.022$ to $-0.009$. The sign of the net slope, which carries the entire behavioural claim, therefore depends on whether the regression uses the outcome or the cause, and in scenarios 2, 3, 7 and 8 no such substitution exists because $\kappa$ does not vary, which is exactly the situation of a researcher working with real data.
 
 ---
 """)
@@ -539,6 +500,8 @@ md(r"""
 <a id="s7"></a>
 
 ## 7. Independence of the injected parameters
+
+The assignment asks four things here, that the two parameters be drawn independently, that their realised correlation be reported, that the correlation between $\delta$ and realised turnover be explained, and that we discuss what would happen had the parameters been correlated by construction.
 """)
 
 code(r"""
@@ -547,19 +510,26 @@ indep.to_csv("results/independence.csv")
 indep
 """)
 
+md(r"""
+**(1) and (2).** The two parameters come from separate random streams, and scenario 6, the only one in which both vary across traders, gives $\mathrm{corr}(\delta_i,\kappa_i) = -0.040$ against a standard error of 0.032 under independence, a $t$ of $-1.3$, while in every other scenario one of the two is constant and the correlation is undefined, which the table shows as a missing value rather than a zero.
+
+**(3) The correlation between $\delta$ and realised turnover is not zero, and its sign changes**, from $+0.136$ in scenario 2 to $-0.112$ in scenario 3 and $-0.617$ in scenario 6, because the injected parameter and the behaviour it produces are different objects connected through the composition of the portfolio. A trader's average probability of selling is $h_0[(1+\delta)p_g + (1-\delta)p_l] = h_0[1+\delta(p_g-p_l)]$, where $p_g$ is the share of positions showing a gain, so two forces pull in opposite directions, since in a rising market most positions are gains and a larger $\delta$ raises selling on that larger group, which dominates at $\delta = 0.3$, while a trader who holds losers longer accumulates them and shrinks the group the tilt acts on. The `gain_share` column shows that second force directly, falling from 0.581 in the null to 0.548 in scenario 2, 0.502 in scenario 3 and 0.387 in scenario 6, so at high $\delta$ the accumulation of losers wins and the correlation turns negative, strongly so when the higher trading of scenario 6 lets the composition adjust faster, and turnover is therefore an equilibrium of the mechanism rather than a direct reading of either parameter.
+
+**(4) What correlated parameters would do.** We rerun scenario 6 making traders with a strong disposition also trade more often (a correlation of $+0.7$) or less often ($-0.7$), imposed through a Gaussian copula, which is simply a way of correlating two variables while keeping each one's Beta distribution.
+""")
+
 code(r"""
 %%time
 rows = []
 for rho in (0.0, 0.7, -0.7):
     o = analyse(replace(SCENARIOS[5], copula_rho=rho), universe, n_boot=300)
-    rows.append({"copula rho": rho,
+    rows.append({"imposed correlation": rho,
                  "realised corr(delta,kappa)": o.indep["corr_delta_kappa"],
                  "corr(delta,turnover)": o.indep["corr_delta_turnover"],
-                 "corr(kappa,turnover)": o.indep["corr_kappa_turnover"],
                  "beta_gross": o.over["ret_gross"]["beta"],
                  "beta_net": o.over["ret_net"]["beta"],
                  "PGR-PLR": o.disp["diff"]})
-copula = pd.DataFrame(rows).set_index("copula rho")
+copula = pd.DataFrame(rows).set_index("imposed correlation")
 copula.to_csv("results/copula.csv")
 copula
 """)
@@ -569,41 +539,7 @@ fx.turnover_vs_parameters(outputs[6].df, outputs[5].df, f"{FIG}/turnover_params.
 """)
 
 md(r"""
-**(1) The draws are independent.** $\delta_i$ and $\kappa_i$ come from separate generator
-streams spawned off one master seed, so neither draw can shift the other.
-
-**(2) The realised correlation.** Scenario 6 is the only scenario in which both parameters
-carry dispersion, and there $\mathrm{corr}(\delta_i,\kappa_i) = -0.040$ against a null standard
-error of $1/\sqrt{N-3} = 0.032$, a $t$ of $-1.28$. Everywhere else one of the two is degenerate
-and the correlation is undefined rather than zero, which the table reports as a missing value.
-
-**(3) The correlation between $\delta_i$ and realised turnover is not zero, and its sign
-changes.** It is $+0.136$ in scenario 2, $-0.112$ in scenario 3 and $-0.617$ in scenario 6. The
-injected parameter and the behaviour it produces are different objects, and the map between
-them runs through the composition of the portfolio. Write the account's average hazard as
-$h_0\bigl[(1+\delta)p_g + (1-\delta)p_l\bigr] = h_0\bigl[1+\delta(p_g-p_l)\bigr]$, where $p_g$
-is the share of positions currently showing a gain. Two forces act in opposite directions. For
-a given composition, raising $\delta$ raises the average hazard, because a drifting market
-leaves more gains than losses and the $(1+\delta)$ arm applies to the larger pool — this is what
-produces the positive correlation at $\delta=0.3$. But composition is itself endogenous to
-$\delta$: an account that holds losers at $(1-\delta)$ accumulates them, $p_g$ falls, and the
-tilt has a smaller pool to act on. At $\delta=0.8$ the second force dominates and the
-correlation turns negative, strongly so when higher churn in scenario 6 lets the composition
-effect express itself faster. Turnover is thus a *fixed point* of the mechanism rather than a
-monotone function of the parameter, and no researcher measuring turnover is measuring $\kappa$.
-
-**(4) What correlated parameters would do.** Coupling the two draws through a Gaussian copula
-leaves the disposition estimate almost untouched, at 0.0985, 0.1040 and 0.1004 for
-$\rho = 0,\,+0.7,\,-0.7$, and moves the overconfidence slope by more than half its value: the
-gross coefficient runs $+0.028$, $+0.045$, $+0.022$ and the net coefficient $+0.022$, $+0.038$,
-$+0.016$. The coefficient that is supposed to price trading moves by 60 % because of a
-parameter that has nothing to do with costs. The reason is visible in the same table: a
-positive $\rho$ partly cancels the composition effect described above, taking
-$\mathrm{corr}(\delta,\text{turnover})$ from $-0.617$ to $-0.257$, so accounts with strong
-disposition no longer trade distinctively little and the endogenous part of turnover is
-reweighted. With the parameters correlated by construction, $\beta$ is a blend of the cost of
-trading and the disposition mechanism's effect on trade frequency, and is not interpretable as
-either.
+The disposition estimate barely moves, at 0.0985, 0.1040 and 0.1004, whereas the overconfidence slope on gross returns goes from $+0.028$ to $+0.045$ and $+0.022$, and on net returns from $+0.022$ to $+0.038$ and $+0.016$, so the coefficient meant to price trading moves by 60 % because of a parameter that has nothing to do with costs. A positive correlation partly cancels the composition effect of point (3), taking $\mathrm{corr}(\delta,\text{turnover})$ from $-0.617$ to $-0.257$, so traders with strong disposition no longer trade distinctively less and the share of turnover driven by the disposition mechanism changes, which leaves $\beta$ as a blend of the cost of trading and the disposition mechanism's effect on trade frequency, interpretable as neither.
 
 ---
 """)
