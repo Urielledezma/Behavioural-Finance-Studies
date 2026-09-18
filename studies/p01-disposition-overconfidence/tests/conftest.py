@@ -1,5 +1,5 @@
 import pathlib
 import sys
 
-# The library is imported from src/ rather than installed, as the notebooks do.
+# The study's library is imported from its src/ rather than installed, as the notebook does.
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))

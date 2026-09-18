@@ -112,12 +112,13 @@ code(r"""
 
 import os, sys, pathlib, warnings
 
-# The library lives at the repository root and this study's outputs beside the
-# notebook, so both are resolved from the root wherever the kernel starts.
-ROOT = next(p for p in [pathlib.Path.cwd(), *pathlib.Path.cwd().parents]
+# The library and the outputs both live in this study's folder, which is found
+# whether the kernel starts there, below it, or at the repository root.
+HERE = next(p for p in [pathlib.Path.cwd(), *pathlib.Path.cwd().parents,
+                        pathlib.Path.cwd() / "studies" / "p01-disposition-overconfidence"]
             if (p / "src" / "bfsim").is_dir())
-os.chdir(ROOT / "studies" / "p01-disposition-overconfidence")
-sys.path.insert(0, str(ROOT / "src"))
+os.chdir(HERE)
+sys.path.insert(0, str(HERE / "src"))
 warnings.filterwarnings("ignore")
 
 import numpy as np
@@ -649,7 +650,7 @@ md(r"""
 
 ## 12. Reproducibility
 
-The simulator lives at the repository root in `src/bfsim/` as seven modules, with `config.py` holding every parameter and the seed policy, `prices.py` the factor model and the leakage test, `agents.py` the population draws, `engine.py` the daily trading loop, `estimators.py` the two estimators and their bootstraps, `scenarios.py` the eight configurations and the tables, and `figures.py` the charts. All randomness descends from a single master seed through separate named streams, so running this notebook from a clean kernel reproduces every number in it exactly, and every table is written to this study's `results/` folder and every figure to `results/figures/`.
+The simulator lives in this study's own `src/bfsim/` as seven modules, with `config.py` holding every parameter and the seed policy, `prices.py` the factor model and the leakage test, `agents.py` the population draws, `engine.py` the daily trading loop, `estimators.py` the two estimators and their bootstraps, `scenarios.py` the eight configurations and the tables, and `figures.py` the charts. All randomness descends from a single master seed through separate named streams, so running this notebook from a clean kernel reproduces every number in it exactly, and every table is written to this study's `results/` folder and every figure to `results/figures/`.
 """)
 
 code(r"""

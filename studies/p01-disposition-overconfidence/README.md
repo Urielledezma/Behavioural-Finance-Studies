@@ -21,10 +21,8 @@ indistinguishable from the real thing.
 | [`build_notebook.py`](build_notebook.py) | Assembles the report notebook from source. **The notebook's source of truth** |
 | [`run_analysis.py`](run_analysis.py) | Command-line driver that writes every table without opening the notebook |
 | [`results/`](results) | Tables as CSV and figures as PNG, regenerated on every run |
-
-The simulator itself is the `bfsim` package in [`src/bfsim/`](../../src/bfsim) at the
-repository root, and its recovery properties are asserted in
-[`tests/test_p01_recovery.py`](../../tests/test_p01_recovery.py).
+| [`src/bfsim/`](src/bfsim) | The simulator and the estimators, as a package used only by this study |
+| [`tests/`](tests) | The recovery properties the report's conclusions rest on |
 
 ---
 

@@ -14,7 +14,7 @@ from dataclasses import replace
 import pandas as pd
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parents[1] / "src"))
+sys.path.insert(0, str(HERE / "src"))
 
 from bfsim.config import CostConfig, EngineConfig  # noqa: E402
 from bfsim.scenarios import (  # noqa: E402
