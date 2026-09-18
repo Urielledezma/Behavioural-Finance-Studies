@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+title: >-
+  Behavioural Finance Studies: Simulation-Based Tests of the Estimators of
+  Investor Bias
+message: >-
+  If you use this repository or its methodology, please cite it as below.
+type: software
+authors:
+  - given-names: Francisco Uriel
+    family-names: Ledezma Chávez
+    email: urielledezma7@gmail.com
+  - given-names: Alan Jesús
+    family-names: Hernández Soto
+  - given-names: Esteban
+    family-names: Vega Campos
+repository-code: "https://github.com/Urielledezma/Behavioural-Finance-Studies"
+abstract: >-
+  A series of studies in behavioural finance built on a common principle: a
+  bias is injected into simulated investors at a strength fixed in advance, so
+  that the estimators used on real brokerage data can be checked against a known
+  ground truth. The first study, P01, injects the disposition effect and
+  overprecision into synthetic trading records for eight scenarios and tests
+  whether the proportion-of-gains-realised estimator and the turnover
+  regression recover them, including two confounds under which the
+  disposition estimator fires with no bias present.
+keywords:
+  - behavioural finance
+  - disposition effect
+  - overconfidence
+  - agent-based simulation
+  - Monte Carlo
+  - bootstrap
+  - Python
+license: MIT
+version: 0.1.0
+date-released: "2026-09-17"
