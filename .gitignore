@@ -1,4 +1,33 @@
+# --- Python -------------------------------------------------------------------
 __pycache__/
-*.pyc
-.ipynb_checkpoints/
+*.py[cod]
+*.egg-info/
+.python-version
+
+# --- Virtual environments -----------------------------------------------------
 .venv/
+venv/
+env/
+
+# --- Jupyter ------------------------------------------------------------------
+# Notebook outputs ARE versioned: the interpretation cells quote the numbers the
+# code cells produce, and without them the text loses its support.  What is
+# ignored is the scaffolding Jupyter regenerates every session.
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# --- Credentials --------------------------------------------------------------
+.env
+.env.*
+
+# --- Operating system and editors ---------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# --- Local archive ------------------------------------------------------------
+# Superseded drafts kept on disk but not published.
+.archives/

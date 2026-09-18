@@ -1,0 +1,15 @@
+# Normalise line endings so the repository is identical on Windows, macOS and
+# Linux, and so a re-run on one machine does not rewrite every line on another.
+* text=auto eol=lf
+
+*.py     text eol=lf
+*.md     text eol=lf
+*.txt    text eol=lf
+*.csv    text eol=lf
+
+*.png    binary
+
+# The notebook is JSON on disk, so it is treated as text; its language is
+# declared as Python so repository statistics reflect the code, not the container.
+*.ipynb  text eol=lf linguist-language=Python
+
