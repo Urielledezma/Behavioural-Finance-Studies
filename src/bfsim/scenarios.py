@@ -134,10 +134,14 @@ def independence_table(outputs) -> pd.DataFrame:
     for k in sorted(outputs):
         o = outputs[k]
         r = dict(o.indep)
+        d = o.disp
+        # Share of held positions showing a gain on sale days: the portfolio
+        # composition through which delta feeds back into turnover.
+        r["gain_share"] = (d["Gr"] + d["Gp"]) / (d["Gr"] + d["Gp"] + d["Lr"] + d["Lp"])
         r["#"] = k
         r["Scenario"] = o.cfg.name
         rows.append(r)
-    cols = ["#", "Scenario", "corr_delta_kappa", "se_corr_null",
+    cols = ["#", "Scenario", "gain_share", "corr_delta_kappa", "se_corr_null",
             "corr_delta_turnover", "corr_kappa_turnover",
             "corr_delta_retgross", "corr_turnover_retgross"]
     return pd.DataFrame(rows)[cols].set_index("#")
@@ -147,14 +151,16 @@ def convention_table(outputs) -> pd.DataFrame:
     rows = []
     for k in sorted(outputs):
         o = outputs[k]
+        a = o.run.allday_counts
+        allday = pgr_plr(a["Gr"], a["Gp"], a["Lr"], a["Lp"])
         rows.append({
             "#": k, "Scenario": o.cfg.name,
             "per-lot, position": o.disp["diff"],
             "per-lot, share-weighted": o.disp_frac["diff"],
             "average cost, position": o.disp_avgcost["diff"],
-            "silent days included": pgr_plr(**{k: v for k, v in
-                                              zip(("Gr", "Gp", "Lr", "Lp"),
-                                                  (o.run.allday_counts[x] for x in ("Gr", "Gp", "Lr", "Lp")))})["diff"],
+            "silent days included": allday["diff"],
+            "ratio, sale days only": o.disp["ratio"],
+            "ratio, silent days included": allday["ratio"],
             "at basis (obs)": o.run.at_basis,
             "se (account)": o.boot["se_diff"],
             "se (position-day)": o.boot_naive["se_diff"],
