@@ -65,6 +65,34 @@ md(r"""
 ---
 """)
 
+# =========================================================================== 0
+md(r"""
+<a id="s0"></a>
+
+## 0. The project in plain terms
+
+With real brokerage data nobody can check whether a measured bias is genuine or the product of a coding error, because the true behaviour of each investor is unknown, so we built a simulated market in which it is known by construction. A thousand simulated investors trade sixty simulated stocks for three years, and we hide two behaviours in their decision rules at strengths we fix in advance, namely a tendency to sell winners faster than losers (the **disposition effect**) and a tendency to trade too often (**overprecision**, the form of overconfidence in which investors treat their own information as more precise than it is), after which we run the two standard measurements from the literature on the resulting trading record and compare what they report against what we hid.
+
+The table below is the whole result in one place, and the rest of the notebook explains how each row was obtained and why the wrong answers occur.
+
+| # | What we hid in the traders | What the disposition measure reports | What the turnover regression reports | Correct? |
+|---|---|---|---|---|
+| 1 | Nothing | No effect (ratio 1.02) | No effect | Yes |
+| 2 | Mild disposition | Disposition (ratio 1.74) | Trading *raises* returns | Only the first |
+| 3 | Strong disposition | Strong disposition (ratio 7.39) | Trading *raises* returns | Only the first |
+| 4 | Mild overtrading | No effect (ratio 1.00) | Trading costs 0.78 pp of return per unit of turnover | Yes |
+| 5 | Strong overtrading | No effect (ratio 1.00) | Trading costs 0.65 pp per unit of turnover, weakly significant | Yes |
+| 6 | Both | Disposition (ratio 6.67) | Trading *raises* returns | Only the first |
+| 7 | Nothing, but traders rebalance monthly | Disposition (ratio 1.83) | No effect | **No** |
+| 8 | Nothing, but traders expect prices to revert | Disposition (ratio 1.41) | Trading *raises* returns | **No** |
+
+In five of the eight scenarios at least one measurement returns a confident answer that is wrong, and none of the five is a bug, since each measurement computes exactly what it claims to compute and the error lies in reading that number as the behaviour behind it.
+
+**A short glossary, used throughout.** A position's *basis* is its purchase price, so a position is a *paper gain* when today's price is above the basis and a *paper loss* when it is below. **PGR** (proportion of gains realised) is the share of paper gains an investor sells on the days they sell anything, and **PLR** is the same share for losses, so if an investor holding 10 gains and 10 losses sells 2 gains and 1 loss that day, PGR = 2/10 = 0.20 and PLR = 1/10 = 0.10, and a ratio PGR/PLR above one is the disposition effect. A *hazard* is simply the probability of selling a position on a given day, which is how we write the behaviour into each trader. **Turnover** is the fraction of the portfolio traded in a year, where a turnover of 1 means the whole portfolio was sold and replaced once. **Gross** returns ignore trading costs and **net** returns include them. A **standard error** measures how much an estimate would move if the experiment were repeated, a **t-statistic** is the estimate divided by it (values beyond about 2 are conventionally called significant), and a **bootstrap** estimates the standard error by recomputing the statistic on many resamples of the data.
+
+---
+""")
+
 # =========================================================================== 1
 md(r"""
 <a id="s1"></a>
