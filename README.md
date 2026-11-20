@@ -5,10 +5,10 @@
 [![Jupyter](https://img.shields.io/badge/Jupyter-reports-F37626?logo=jupyter&logoColor=white)](https://jupyter.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Four independent projects in **behavioural finance**, written in **Python**, one folder
-each. They share a team, a course and a set of working conventions, not code or a
-research question: each project has its own report, library, tests and results, and can
-be read, run and graded without opening any other.
+Coursework in **behavioural finance**, written in **Python**, with one self-contained
+folder per study: its own report, library, tests and results, readable and runnable
+without opening any other. One study was delivered under this layout, P01, and the
+repository is closed at it.
 
 Coursework for **Comportamiento en las Finanzas y Toma de Decisiones**, Financial
 Engineering programme, ITESO — Universidad Jesuita de Guadalajara.
@@ -24,12 +24,16 @@ Engineering programme, ITESO — Universidad Jesuita de Guadalajara.
 | Project | Question it answers | Folder |
 |---|---|---|
 | P01 — Disposition and overconfidence | Do the standard estimators of the disposition effect and of overconfidence recover biases injected at known strengths, and which confounds fool them? | [`studies/p01-disposition-overconfidence/`](studies/p01-disposition-overconfidence) |
-| P02 | Not yet assigned | — |
-| P03 | Not yet assigned | — |
-| P04 | Not yet assigned | — |
 
-A new project starts as a copy of [`studies/_template/`](studies/_template); the steps are
-in [CONTRIBUTING.md](CONTRIBUTING.md#starting-a-new-project).
+**This repository is closed at P01.** The later coursework took a different shape than the
+four parallel studies this layout anticipated, so nothing further is added here. The
+course's integrating project, which couples a client questionnaire to a portfolio
+optimisation and a simulated ten-year policy comparison, lives in its own repository
+because it ships as a self-contained submission with its own dashboard and entry point.
+
+[`studies/_template/`](studies/_template) is kept as the skeleton a new study would copy,
+with the steps in [CONTRIBUTING.md](CONTRIBUTING.md#starting-a-new-project), so the layout
+is still usable if a later course reuses it.
 
 ---
 
@@ -46,9 +50,9 @@ in [CONTRIBUTING.md](CONTRIBUTING.md#starting-a-new-project).
 │   │   ├── src/bfsim/                     # Simulator and estimators, P01 only
 │   │   ├── tests/                         # Properties P01's conclusions rest on
 │   │   └── results/                       # CSV tables and PNG figures
-│   └── _template/                         # Skeleton copied to start P02–P04
+│   └── _template/                         # Skeleton a new study would copy
 ├── pytest.ini              # Collects every project's tests from studies/
-├── requirements.txt        # One environment for all four projects
+├── requirements.txt        # One environment for every study in the repository
 └── .github/workflows/      # Tests and a secrets check on every push
 ```
 
@@ -99,9 +103,7 @@ survive a change of library version whose conclusion still holds.
 
 - [x] Repository scaffold, one self-contained folder per project, and a template
 - [x] P01 — disposition effect and overprecision, eight scenarios
-- [ ] P02
-- [ ] P03
-- [ ] P04
+- [x] Closed at P01, with the template left in place for reuse
 
 ---
 

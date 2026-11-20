@@ -51,7 +51,7 @@ one project's folder imports from another's.
 | A parameter or seed | the project's config module, never inline in the report |
 | Prose, tables and figures | the project's `build_notebook.py` |
 | A property a conclusion depends on | the project's `tests/test_pNN_*.py` |
-| A dependency | `requirements.txt` at the root, shared by all four projects |
+| A dependency | `requirements.txt` at the root, shared by every project |
 
 Code is copied between projects rather than shared until a second project genuinely
 needs the same helper. At that point it moves to one place with a test, in its own
